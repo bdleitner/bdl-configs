@@ -1,0 +1,4 @@
+rootProject.name = 'bdl-configs'
+
+include 'configs'
+include 'annotation_processor'

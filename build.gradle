@@ -1,0 +1,76 @@
+apply plugin: 'java'
+
+buildscript {
+    repositories {
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath "net.ltgt.gradle:gradle-apt-plugin:0.8"
+    }
+}
+
+allprojects {
+    group 'com.bdl'
+    version '1.0-SNAPSHOT'
+}
+
+subprojects {
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+
+    apply plugin: 'java'
+    apply plugin: 'idea'
+    apply plugin: 'net.ltgt.apt'
+
+    sourceCompatibility = 1.7
+    targetCompatibility = 1.7
+
+    ext {
+        JUNIT_VERSION = '4.2'
+        GOOGLE_TRUTH_VERSION = '0.28'
+    }
+
+    dependencies {
+        compile 'com.google.dagger:dagger:2.6.1'
+
+        testCompile "com.google.truth:truth:${GOOGLE_TRUTH_VERSION}"
+        testCompile "junit:junit:${JUNIT_VERSION}"
+
+        apt 'com.google.dagger:dagger-compiler:2.6.1'
+        testApt 'com.google.dagger:dagger-compiler:2.6.1'
+    }
+
+    javadoc {
+        failOnError false
+    }
+
+    task jarSources(type: Jar) {
+        baseName project.name
+        classifier = 'src'
+        destinationDir = file('build/libs')
+        from 'src/main/java/'
+    }
+
+    task jarDocs(type: Jar) {
+        dependsOn javadoc
+        baseName project.name
+        classifier = 'javadoc'
+        destinationDir = file('build/libs')
+        from 'build/docs/javadoc/'
+    }
+
+    task copyJars(type: Copy) {
+        dependsOn jar, jarSources, jarDocs
+        from 'build/libs'
+        include '*.jar'
+        into '../build/libs'
+    }
+
+    build {
+        dependsOn copyJars
+    }
+}

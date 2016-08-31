@@ -34,18 +34,6 @@ public class ConfigException extends Exception {
     }
   }
 
-  /** An exception thrown when a requested config cannot be uniquely determined */
-  public static class AmbiguousConfigException extends ConfigException {
-
-    /** For serialization, derived by casting the start of the class name into numbers */
-    private static final long serialVersionUID = 11329721152119L;
-
-    public AmbiguousConfigException(String configName, Iterable<String> fullNames) {
-      super(String.format("The config \"%s\" as ambiguous, the following configs all match: %s",
-          configName, Joiner.on(", ").join(fullNames)));
-    }
-  }
-
   /** An exception thrown when an attempt to load configs from an external source fails */
   public static class ExternalConfigLoadException extends ConfigException {
 
@@ -68,4 +56,6 @@ public class ConfigException extends Exception {
       super(String.format("Invalid config syntax: %s", arg));
     }
   }
+
+
 }

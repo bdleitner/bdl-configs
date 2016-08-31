@@ -24,8 +24,8 @@ public class ConfigRuntimeException extends RuntimeException {
     /** For serialization, derived by casting the start of the class name into numbers. */
     private static final long serialVersionUID = 914221129461217221L;
 
+    private final String value;
     private String configName;
-    private String value;
 
     public InvalidConfigValueException(String value) {
       this(null, value);
@@ -77,6 +77,36 @@ public class ConfigRuntimeException extends RuntimeException {
         return "Attempted to set the value of a config after it was read.";
       }
       return String.format("Attempted to set the value of the config %s after it was read.", configName);
+    }
+  }
+
+  /** An exception thrown when a requested config cannot be uniquely determined */
+  public static class AmbiguousConfigException extends ConfigRuntimeException {
+
+    /** For serialization, derived by casting the start of the class name into numbers */
+    private static final long serialVersionUID = 11329721152119L;
+
+    public AmbiguousConfigException(ConfigDescription first, ConfigDescription second) {
+      super(String.format(
+          "Duplicate config name found.  The name %s refers to both %s.%s and %s.%s." +
+              "  Inclusion of both via modules is not allowed.",
+          first.name(),
+          first.className(),
+          first.fieldName(),
+          second.className(),
+          second.fieldName()));
+    }
+  }
+
+  /**
+   * An exception thrown when an attempt is made to update a {@link Configurable} to an incompatible
+   * value.
+   */
+  public static class ConfigTypeMismatchException extends ConfigRuntimeException {
+
+    public ConfigTypeMismatchException(Object oldValue, Object newValue) {
+      super(String.format("Attempted to set configurable to incompatible value %s (was %s).",
+          newValue, oldValue));
     }
   }
 }

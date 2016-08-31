@@ -1,18 +1,18 @@
 package com.bdl.config;
 
-import static com.bdl.config.ConfigRuntimeException.IllegalConfigStateException;
-import static com.bdl.config.ConfigRuntimeException.InvalidConfigValueException;
-
-import com.google.common.base.Function;
-import com.google.common.base.Preconditions;
-import com.google.common.base.Predicate;
-import com.google.common.base.Predicates;
-import com.google.common.base.Splitter;
+import com.bdl.config.ConfigChangeListener.ListenerRegistration;
+import com.bdl.config.ConfigRuntimeException.ConfigTypeMismatchException;
+import com.google.common.base.*;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
+
+import static com.bdl.config.ConfigRuntimeException.IllegalConfigStateException;
+import static com.bdl.config.ConfigRuntimeException.InvalidConfigValueException;
 
 /**
  * A class to hold a configurable value as from a command line argument.
@@ -22,10 +22,12 @@ import java.util.regex.Pattern;
  */
 public final class Configurable<T> {
 
-  protected final T defaultValue;
+  private final Class<T> type;
+  private final T defaultValue;
   private final Predicate<? super T> predicate;
   private final Function<String, T> parser;
   private final boolean lockable;
+  private final Set<ConfigChangeListener<T>> listeners;
 
   /**
    * The current value of the config.
@@ -34,11 +36,14 @@ public final class Configurable<T> {
   protected volatile T value;
   private boolean read;
 
+
   private Configurable(
+      Class<T> type,
       T defaultValue,
       Predicate<? super T> predicate,
       Function<String, T> parser,
       boolean lockable) {
+    this.type = type;
     this.defaultValue = defaultValue;
     this.predicate = predicate;
     this.parser = parser;
@@ -48,22 +53,18 @@ public final class Configurable<T> {
       throw new InvalidConfigValueException(value.toString());
     }
     read = false;
+    listeners = Sets.newHashSet();
   }
 
   /** Returns the value of this config. */
-  public final T get() {
+  public T get() {
     read = true;
     return value;
   }
 
-  /**
-   * Returns a string representation of the value of this command line config.
-   * This will retrieve the value from the {@link #get} method and thus mark
-   * the config as having been accessed.
-   */
-  @Override
-  public final String toString() {
-    return value == null ? null : value.toString();
+  /** Returns the type of the configurable. */
+  Class<T> getType() {
+    return type;
   }
 
   /**
@@ -79,6 +80,9 @@ public final class Configurable<T> {
   }
 
   private T checkValue(T value) throws InvalidConfigValueException {
+    if (value == null || !type.equals(value.getClass())) {
+      throw new ConfigTypeMismatchException(this.value, value);
+    }
     if (!predicate.apply(value)) {
       throw new InvalidConfigValueException(value.toString());
     }
@@ -86,7 +90,7 @@ public final class Configurable<T> {
   }
 
   /** Sets this config's value from the specified string. */
-  final Configurable<T> setFromString(String valueString) throws InvalidConfigValueException,
+  Configurable<T> setFromString(String valueString) throws InvalidConfigValueException,
       ConfigRuntimeException.IllegalConfigStateException {
     checkSetState();
     if (valueString == null) {
@@ -101,6 +105,23 @@ public final class Configurable<T> {
     return this;
   }
 
+  /** Registers a listener to the configurable. */
+  public ListenerRegistration registerListener(final ConfigChangeListener<T> listener) {
+    return registerListener(listener, false);
+  }
+
+  /** Registers a listener to the configurable, including firing an initial event to sent the current value. */
+  public ListenerRegistration registerListener(final ConfigChangeListener<T> listener, boolean listen) {
+    listeners.add(listener);
+    listener.onConfigurationChange(value);
+    return new ListenerRegistration() {
+      @Override
+      public void unregister() {
+        listeners.remove(listener);
+      }
+    };
+  }
+
   /**
    * Sets the config to a new value.
    * <p>
@@ -110,10 +131,66 @@ public final class Configurable<T> {
    * @param value the new value to assign to this config
    * @see Configuration#disableConfigSetCheck()
    */
-  public void setValue(T value)
-      throws ConfigRuntimeException.InvalidConfigValueException, IllegalConfigStateException {
+  public void setValue(T value) throws InvalidConfigValueException, IllegalConfigStateException {
     checkSetState();
-    this.value = checkValue(value);
+    if (!fireBeforeChange()) {
+      fireChangeCancelled(value);
+      return;
+    }
+    synchronized (this) {
+      this.value = checkValue(value);
+    }
+    fireOnChange();
+  }
+
+  /** Resets the config to its default value. */
+  public void reset() {
+    fireBeforeChange();
+    synchronized (this) {
+      this.value = defaultValue;
+    }
+    fireOnChange();
+  }
+
+
+  /**
+   * Alerts the listeners that a change is coming.
+   *
+   * @return {@code true} if no listeners blocked the change, {@code false} otherwise.
+   */
+  private boolean fireBeforeChange() {
+    T oldValue = get();
+    boolean cleared = true;
+    for (ConfigChangeListener<T> listener : listeners) {
+      if (!listener.beforeConfigurationChange(oldValue)) {
+        cleared = false;
+      }
+    }
+    return cleared;
+  }
+
+  private void fireOnChange() {
+    T newValue = get();
+    for (ConfigChangeListener<T> listener : listeners) {
+      listener.onConfigurationChange(newValue);
+    }
+  }
+
+  private void fireChangeCancelled(T cancelledValue) {
+    T oldValue = get();
+    for (ConfigChangeListener<T> listener : listeners) {
+      listener.onChangeCancelled(oldValue, cancelledValue);
+    }
+  }
+
+  /**
+   * Returns a string representation of the value of this command line config.
+   * This will retrieve the value from the {@link #get} method and thus mark
+   * the config as having been accessed.
+   */
+  @Override
+  public String toString() {
+    return value == null ? null : value.toString();
   }
 
   /** Creates a new Configurable with the default value. */
@@ -231,7 +308,7 @@ public final class Configurable<T> {
         predicate = Predicates.and(built);
       }
 
-      return new Configurable<>(defaultValue, predicate, getParser(), lockable);
+      return new Configurable<>(clazz, defaultValue, predicate, getParser(), lockable);
     }
 
     private Function<String,T> getParser() {

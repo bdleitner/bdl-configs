@@ -3,7 +3,7 @@ package com.bdl.config;
 import java.lang.reflect.Field;
 
 /**
- * Implementation of {@link ConfigAccess} that uses reflection to access the Configurable's fields.
+ * Implementation of {@link ConfigSupplier} that uses reflection to access the Configurable's fields.
  *
  * @author Ben Leitner
  */

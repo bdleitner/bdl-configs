@@ -1,5 +1,6 @@
 package com.bdl.config.annotation.processor;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -27,6 +28,10 @@ class ConfigPackageTree {
 
   void pushPublicAndPrivateConfigsDown() {
     root.pushConfigsDown();
+  }
+
+  DaggerModuleFile toModuleFile() {
+    return root.toModuleFile("");
   }
 
   private static class Node {
@@ -85,6 +90,18 @@ class ConfigPackageTree {
       node.configs.addAll(this.configs);
       this.configs.clear();
       node.pushConfigsDown();
+    }
+
+    DaggerModuleFile toModuleFile(String prefix) {
+      String thisPackage = prefix + packagePart;
+      ImmutableSet.Builder<DaggerModuleFile> files = ImmutableSet.builder();
+      for (Map.Entry<String, Node> entry : children.entrySet()) {
+        files.add(entry.getValue().toModuleFile(String.format("%s.%s.", thisPackage, entry.getKey())));
+      }
+      return new DaggerModuleFile(
+          String.format("%s.ConfigDaggerModule", thisPackage),
+          configs,
+          files.build());
     }
   }
 }

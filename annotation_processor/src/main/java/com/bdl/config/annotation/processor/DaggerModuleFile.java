@@ -1,6 +1,8 @@
 package com.bdl.config.annotation.processor;
 
 import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableSet;
 
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
@@ -28,9 +30,24 @@ class DaggerModuleFile {
     this.subpackageFiles = subpackageFiles;
   }
 
+  private Set<String> getNonemptyImmediateChildFilenames() {
+    ImmutableSet.Builder<String> names = ImmutableSet.builder();
+    for (DaggerModuleFile file : subpackageFiles) {
+      if (file.configs.isEmpty()) {
+        names.addAll(file.getNonemptyImmediateChildFilenames());
+      } else {
+        names.add(String.format("%s.ConfigDaggerModule", file.fullyQualifiedName));
+      }
+    }
+    return names.build();
+  }
+
   void write(Function<String, Writer> writerFunction) throws IOException {
     for (DaggerModuleFile subpackageFile : subpackageFiles) {
       subpackageFile.write(writerFunction);
+    }
+    if (configs.isEmpty()) {
+      return;
     }
     Writer writer = writerFunction.apply(fullyQualifiedName);
     writeClassOpening(writer);
@@ -38,6 +55,7 @@ class DaggerModuleFile {
       writeConfigSupplierBinding(writer, config);
       writeConfigValueBinding(writer, config);
     }
+    writeClassClosing(writer);
 
     writer.close();
   }
@@ -55,13 +73,14 @@ class DaggerModuleFile {
     writeLine(writer, "import dagger.multibindings.IntoSet;");
     writeLine(writer, "");
     writeLine(writer, "/** Dagger module for binding configs in the %s package. */", packageName);
-    writeLine(writer, "@Module");
-    writeLine(writer, "public class ConfigDaggerModule {");
-  }
 
-  private void writeMethodsForConfig(Writer writer, ConfigMetadata config) throws IOException {
-    writeConfigSupplierBinding(writer, config);
-    writeConfigValueBinding(writer, config);
+    Set<String> includes = getNonemptyImmediateChildFilenames();
+    if (includes.isEmpty()) {
+      writeLine(writer, "@Module");
+    } else {
+      writeLine(writer, "@Module(includes = {%s}", Joiner.on(", ").join(includes));
+    }
+    writeLine(writer, "public class ConfigDaggerModule {");
   }
 
   private void writeConfigSupplierBinding(Writer writer, ConfigMetadata config) throws IOException {

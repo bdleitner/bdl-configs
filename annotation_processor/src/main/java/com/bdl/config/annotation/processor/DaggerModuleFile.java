@@ -17,15 +17,15 @@ import java.util.Set;
  */
 class DaggerModuleFile {
 
-  private final String fullyQualifiedName;
+  private final String packageName;
   private final Set<ConfigMetadata> configs;
   private final Set<DaggerModuleFile> subpackageFiles;
 
   DaggerModuleFile(
-      String fullyQualifiedName,
+      String packageName,
       Set<ConfigMetadata> configs,
       Set<DaggerModuleFile> subpackageFiles) {
-    this.fullyQualifiedName = fullyQualifiedName;
+    this.packageName = packageName;
     this.configs = configs;
     this.subpackageFiles = subpackageFiles;
   }
@@ -36,7 +36,7 @@ class DaggerModuleFile {
       if (file.configs.isEmpty()) {
         names.addAll(file.getNonemptyImmediateChildFilenames());
       } else {
-        names.add(String.format("%s.ConfigDaggerModule", file.fullyQualifiedName));
+        names.add(String.format("%s.ConfigDaggerModule", file.packageName));
       }
     }
     return names.build();
@@ -49,7 +49,7 @@ class DaggerModuleFile {
     if (configs.isEmpty()) {
       return;
     }
-    Writer writer = writerFunction.apply(fullyQualifiedName);
+    Writer writer = writerFunction.apply(packageName);
     writeClassOpening(writer);
     for (ConfigMetadata config : configs) {
       writeConfigSupplierBinding(writer, config);
@@ -61,8 +61,7 @@ class DaggerModuleFile {
   }
 
   private void writeClassOpening(Writer writer) throws IOException {
-    String packageName = fullyQualifiedName.substring(0, fullyQualifiedName.lastIndexOf('.'));
-    writeLine(writer, "package %s", packageName);
+    writeLine(writer, "package %s;", packageName);
     writeLine(writer, "");
     writeLine(writer, "import com.bdl.config.ConfigDescription;");
     writeLine(writer, "import com.bdl.config.ConfigSupplier;");

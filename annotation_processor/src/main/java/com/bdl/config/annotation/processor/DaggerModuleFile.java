@@ -3,10 +3,13 @@ package com.bdl.config.annotation.processor;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Lists;
 
 import javax.lang.model.element.Modifier;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -18,15 +21,20 @@ import java.util.Set;
 class DaggerModuleFile {
 
   private final String packageName;
-  private final Set<ConfigMetadata> configs;
+  private final String fullyQualifiedFileName;
+  private final List<ConfigMetadata> configs;
   private final Set<DaggerModuleFile> subpackageFiles;
 
   DaggerModuleFile(
-      String packageName,
+      String fullyQualifiedFileName,
       Set<ConfigMetadata> configs,
       Set<DaggerModuleFile> subpackageFiles) {
-    this.packageName = packageName;
-    this.configs = configs;
+    this.fullyQualifiedFileName = fullyQualifiedFileName;
+    int lastDot = fullyQualifiedFileName.lastIndexOf('.');
+    packageName = lastDot < 0 ? "<empty>" : fullyQualifiedFileName.substring(0, lastDot);
+    this.configs = Lists.newArrayList();
+    this.configs.addAll(configs);
+    Collections.sort(this.configs);
     this.subpackageFiles = subpackageFiles;
   }
 
@@ -36,7 +44,7 @@ class DaggerModuleFile {
       if (file.configs.isEmpty()) {
         names.addAll(file.getNonemptyImmediateChildFilenames());
       } else {
-        names.add(String.format("%s.ConfigDaggerModule", file.packageName));
+        names.add(file.fullyQualifiedFileName);
       }
     }
     return names.build();
@@ -49,7 +57,7 @@ class DaggerModuleFile {
     if (configs.isEmpty()) {
       return;
     }
-    Writer writer = writerFunction.apply(packageName);
+    Writer writer = writerFunction.apply(fullyQualifiedFileName);
     writeClassOpening(writer);
     for (ConfigMetadata config : configs) {
       writeConfigSupplierBinding(writer, config);
@@ -77,15 +85,15 @@ class DaggerModuleFile {
     if (includes.isEmpty()) {
       writeLine(writer, "@Module");
     } else {
-      writeLine(writer, "@Module(includes = {%s}", Joiner.on(", ").join(includes));
+      writeLine(writer, "@Module(includes = {%s})", Joiner.on(", ").join(includes));
     }
     writeLine(writer, "public class ConfigDaggerModule {");
   }
 
   private void writeConfigSupplierBinding(Writer writer, ConfigMetadata config) throws IOException {
     writeLine(writer, "");
-    writeLine(writer, "  /** Adds a ConfigSupplier for config %s (%s.%s) to the set multibinder. */",
-        config.name(), config.className(), config.fieldName());
+    writeLine(writer, "  /** Adds a ConfigSupplier for config %s (%s) to the set multibinder. */",
+        config.name(), config.fullyQualifiedPathName());
     writeLine(writer, "  @Provides");
     writeLine(writer, "  @IntoSet");
     writeLine(writer, "  public static ConfigSupplier provideConfigSupplier_%s() {", config.name());
@@ -106,8 +114,7 @@ class DaggerModuleFile {
       writeLine(writer, "    return ConfigSupplier.reflective(description);");
     } else {
       // Either public or protected/package-local and we are in the same package, so direct access ok.
-      writeLine(writer, "    return ConfigSupplier.simple(description, %s.%s);",
-          config.className(), config.fieldName());
+      writeLine(writer, "    return ConfigSupplier.simple(description, %s);", config.fullyQualifiedPathName());
     }
     writeLine(writer, "  }");
   }
@@ -119,7 +126,7 @@ class DaggerModuleFile {
     writeLine(writer, "  @ConfigValue(\"%s\")", config.name());
     writeLine(writer, "  public static %s provideConfigValue_%s(Configuration configuration) {",
         config.type(), config.name());
-    writeLine(writer, "    throw new UnsupportedOperationException(\"Not Implemented Yet!\");");
+    writeLine(writer, "    return configuration.get(\"%s\");", config.name());
     writeLine(writer, "  }");
   }
 

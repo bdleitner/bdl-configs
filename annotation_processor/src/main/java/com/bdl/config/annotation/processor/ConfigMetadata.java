@@ -18,7 +18,7 @@ import java.util.Set;
  * @author Ben Leitner
  */
 @AutoValue
-public abstract class ConfigMetadata {
+public abstract class ConfigMetadata implements Comparable<ConfigMetadata> {
   public abstract String packageName();
   public abstract String className();
   public abstract String fieldName();
@@ -27,9 +27,18 @@ public abstract class ConfigMetadata {
   public abstract Optional<String> specifiedName();
   public abstract Optional<String> description();
 
+  public String fullyQualifiedPathName() {
+    return String.format("%s.%s.%s", packageName(), className(), fieldName());
+  }
+
   /** Returns the name of the config.  This is equal to the field name unless a specified name is given. */
   public String name() {
     return MoreObjects.firstNonNull(specifiedName().orNull(), fieldName());
+  }
+
+  @Override
+  public int compareTo(ConfigMetadata that) {
+    return String.CASE_INSENSITIVE_ORDER.compare(fullyQualifiedPathName(), that.fullyQualifiedPathName());
   }
 
   public static ConfigMetadata fromElement(Element element) {

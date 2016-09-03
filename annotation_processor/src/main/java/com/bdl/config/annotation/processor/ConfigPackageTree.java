@@ -96,7 +96,7 @@ class ConfigPackageTree {
       String thisPackage = prefix + packagePart;
       ImmutableSet.Builder<DaggerModuleFile> files = ImmutableSet.builder();
       for (Map.Entry<String, Node> entry : children.entrySet()) {
-        files.add(entry.getValue().toModuleFile(String.format("%s.%s.", thisPackage, entry.getKey())));
+        files.add(entry.getValue().toModuleFile(thisPackage.isEmpty() ? "" : thisPackage + "."));
       }
       return new DaggerModuleFile(
           String.format("%s.ConfigDaggerModule", thisPackage),

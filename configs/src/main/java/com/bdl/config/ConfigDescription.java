@@ -25,6 +25,10 @@ public abstract class ConfigDescription {
     return MoreObjects.firstNonNull(specifiedName().orNull(), fieldName());
   }
 
+  public String fullyQualifiedName() {
+    return String.format("%s.%s", className(), fieldName());
+  }
+
   public static Builder builder() {
     return new AutoValue_ConfigDescription.Builder();
   }

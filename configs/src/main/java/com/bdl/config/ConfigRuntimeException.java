@@ -1,5 +1,7 @@
 package com.bdl.config;
 
+import com.google.common.base.Joiner;
+
 /**
  * Base exception class for runtime exceptions that may arise when working with configs.
  *
@@ -7,12 +9,17 @@ package com.bdl.config;
  */
 public class ConfigRuntimeException extends RuntimeException {
 
-  /** For serialization, derived by casting the start of the class name into numbers */
+  /** For serialization, derived by casting the start of the class name into numbers. */
   private static final long serialVersionUID = 6121752435L;
 
-  /** Creates a new {@link ConfigException} with the given message */
+  /** Creates a new {@link ConfigException} with the given message. */
   public ConfigRuntimeException(String message) {
     super(message);
+  }
+
+  /** Creates a new {@link ConfigException} with the given message and cause. */
+  public ConfigRuntimeException(String message, Exception ex) {
+    super(message, ex);
   }
 
   /**
@@ -95,6 +102,13 @@ public class ConfigRuntimeException extends RuntimeException {
           first.fieldName(),
           second.className(),
           second.fieldName()));
+    }
+
+    public AmbiguousConfigException(String name, Iterable<String> fullNames) {
+      super(String.format(
+          "Ambiguous config name \"%s\" matches configs: %s.  Try using the fully qualified name.",
+          name,
+          Joiner.on(", ").join(fullNames)));
     }
   }
 

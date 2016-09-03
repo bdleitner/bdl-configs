@@ -5,7 +5,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
-import javax.lang.model.element.Modifier;
 import java.util.Map;
 import java.util.Set;
 
@@ -55,8 +54,8 @@ class ConfigPackageTree {
     }
 
     private void addConfig(ConfigMetadata config) {
-      if (config.fieldModifiers().contains(Modifier.PUBLIC)
-          || config.fieldModifiers().contains(Modifier.PRIVATE)) {
+      if (config.visibility() == ConfigMetadata.Visibility.PUBLIC
+          || config.visibility() == ConfigMetadata.Visibility.PRIVATE) {
         configs.add(config);
         return;
       }
@@ -74,8 +73,7 @@ class ConfigPackageTree {
 
     private void pushConfigsDown() {
       for (ConfigMetadata config : configs) {
-        if (!config.fieldModifiers().contains(Modifier.PRIVATE)
-            && !config.fieldModifiers().contains(Modifier.PUBLIC)) {
+        if (config.visibility() == ConfigMetadata.Visibility.PACKAGE) {
           // we have a package-private config, no more pushing allowed.
           return;
         }

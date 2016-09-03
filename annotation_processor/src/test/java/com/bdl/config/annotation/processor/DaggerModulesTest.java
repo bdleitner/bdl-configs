@@ -1,22 +1,21 @@
 package com.bdl.config.annotation.processor;
 
+import static com.google.common.truth.Truth.assertWithMessage;
+
 import com.google.common.base.Charsets;
 import com.google.common.base.Function;
 import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import com.google.common.io.Resources;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-import javax.lang.model.element.Modifier;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URL;
 import java.util.Map;
-
-import static com.google.common.truth.Truth.assertWithMessage;
 
 /**
  * Tests for the combined functionality of {@link ConfigPackageTree} and {@link DaggerModuleFile}.
@@ -35,7 +34,7 @@ public class DaggerModulesTest {
             .packageName("com.bdl.config.things")
             .fieldName("flag1")
             .type("java.lang.String")
-            .fieldModifiers(Sets.<Modifier>newHashSet())
+            .visibility(ConfigMetadata.Visibility.PACKAGE)
             .build());
     tree.addConfig(
         ConfigMetadata.builder()
@@ -43,7 +42,7 @@ public class DaggerModulesTest {
             .packageName("com.bdl.config.things")
             .fieldName("flag2")
             .type("java.lang.String")
-            .fieldModifiers(Sets.newHashSet(Modifier.PUBLIC))
+            .visibility(ConfigMetadata.Visibility.PUBLIC)
             .build());
     tree.addConfig(
         ConfigMetadata.builder()
@@ -51,7 +50,7 @@ public class DaggerModulesTest {
             .packageName("com.bdl.config.others")
             .fieldName("otherFlag1")
             .type("java.lang.String")
-            .fieldModifiers(Sets.newHashSet(Modifier.PUBLIC))
+            .visibility(ConfigMetadata.Visibility.PUBLIC)
             .build());
     tree.addConfig(
         ConfigMetadata.builder()
@@ -59,7 +58,7 @@ public class DaggerModulesTest {
             .packageName("com.bdl.config.others")
             .fieldName("otherFlag2")
             .type("java.lang.String")
-            .fieldModifiers(Sets.newHashSet(Modifier.PRIVATE))
+            .visibility(ConfigMetadata.Visibility.PRIVATE)
             .build());
     tree.addConfig(
         ConfigMetadata.builder()
@@ -67,7 +66,7 @@ public class DaggerModulesTest {
             .packageName("com.bdl.config.others")
             .fieldName("otherFlag3")
             .type("java.lang.String")
-            .fieldModifiers(Sets.<Modifier>newHashSet())
+            .visibility(ConfigMetadata.Visibility.PACKAGE)
             .build());
 
     tree.pushPublicAndPrivateConfigsDown();

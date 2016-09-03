@@ -2,14 +2,18 @@ package com.bdl.config.annotation.processor;
 
 import com.bdl.config.Config;
 
-import javax.annotation.processing.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
+
+import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.RoundEnvironment;
+import javax.annotation.processing.SupportedAnnotationTypes;
+import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Annotation processor for generating Dagger Modules for Configuration.
@@ -19,15 +23,6 @@ import java.util.Set;
 @SupportedAnnotationTypes("com.bdl.config.Config")
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class ConfigAnnotationProcessor extends AbstractProcessor {
-
-  private static final String PACKAGE_NAME = "com.bdl";
-  private Messager messager;
-
-  @Override
-  public synchronized void init(ProcessingEnvironment processingEnv) {
-    super.init(processingEnv);
-    messager = processingEnv.getMessager();
-  }
 
   @Override
   public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {

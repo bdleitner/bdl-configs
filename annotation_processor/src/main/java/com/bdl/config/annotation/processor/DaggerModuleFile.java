@@ -11,8 +11,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import javax.lang.model.element.Modifier;
-
 /**
  * A representation of a Dagger Module file that can write itself out, given a Function that provides
  * writers for strings.
@@ -110,7 +108,7 @@ class DaggerModuleFile {
     }
     writeLine(writer, "        .build();");
 
-    if (config.fieldModifiers().contains(Modifier.PRIVATE)) {
+    if (config.visibility() == ConfigMetadata.Visibility.PRIVATE) {
       // Must use a reflective supplier
       writeLine(writer, "    return ConfigSupplier.reflective(description);");
     } else {

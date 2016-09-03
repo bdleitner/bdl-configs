@@ -8,7 +8,6 @@ import com.google.inject.BindingAnnotation;
 
 import com.bdl.config.Config;
 
-import java.lang.annotation.Annotation;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -41,8 +40,8 @@ public abstract class ConfigMetadata implements Comparable<ConfigMetadata> {
   public abstract String type();
   public abstract Optional<String> specifiedName();
   public abstract Optional<String> description();
-  public abstract Optional<Annotation> qualifier();
-  public abstract Optional<Annotation> bindingAnnotation();
+  public abstract Optional<String> qualifier();
+  public abstract Optional<String> bindingAnnotation();
 
   public String fullyQualifiedPathName() {
     return String.format("%s.%s.%s", packageName(), className(), fieldName());
@@ -82,11 +81,11 @@ public abstract class ConfigMetadata implements Comparable<ConfigMetadata> {
     if (!annotation.name().isEmpty()) {
       metadata.specifiedName(annotation.name());
     }
-    Annotation qualifier = getQualifierOrNull(field);
+    String qualifier = getQualifierOrNull(field);
     if (qualifier != null) {
       metadata.qualifier(qualifier);
     }
-    Annotation bindingAnnotation = getBindingAnnotationOrNull(field);
+    String bindingAnnotation = getBindingAnnotationOrNull(field);
     if (bindingAnnotation != null) {
       metadata.bindingAnnotation(bindingAnnotation);
     }
@@ -108,23 +107,20 @@ public abstract class ConfigMetadata implements Comparable<ConfigMetadata> {
   }
 
   @Nullable
-  private static Annotation getQualifierOrNull(Element field) {
+  private static String getQualifierOrNull(Element field) {
     for (AnnotationMirror annotation : field.getAnnotationMirrors()) {
-      DeclaredType annotationType = annotation.getAnnotationType();
-      Qualifier qualifier = annotationType.getAnnotation(Qualifier.class);
-      if (qualifier != null) {
-        return null;
+      if (annotation.getAnnotationType().asElement().getAnnotation(Qualifier.class) != null) {
+        return annotation.toString();
       }
     }
     return null;
   }
 
   @Nullable
-  private static Annotation getBindingAnnotationOrNull(Element field) {
+  private static String getBindingAnnotationOrNull(Element field) {
     for (AnnotationMirror annotation : field.getAnnotationMirrors()) {
-      BindingAnnotation bindingAnnotation = annotation.getAnnotationType().getAnnotation(BindingAnnotation.class);
-      if (bindingAnnotation != null) {
-        return bindingAnnotation;
+      if (annotation.getAnnotationType().asElement().getAnnotation(BindingAnnotation.class) != null) {
+        return annotation.toString();
       }
     }
     return null;
@@ -143,8 +139,8 @@ public abstract class ConfigMetadata implements Comparable<ConfigMetadata> {
     public abstract Builder type(String type);
     public abstract Builder specifiedName(String specifiedName);
     public abstract Builder description(String description);
-    public abstract Builder qualifier(Annotation qualifier);
-    public abstract Builder bindingAnnotation(Annotation bindingAnnotation);
+    public abstract Builder qualifier(String qualifier);
+    public abstract Builder bindingAnnotation(String bindingAnnotation);
     public abstract ConfigMetadata build();
   }
 }

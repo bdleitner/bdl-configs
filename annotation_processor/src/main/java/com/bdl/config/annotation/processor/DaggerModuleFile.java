@@ -8,7 +8,6 @@ import com.google.common.collect.Lists;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.lang.annotation.Annotation;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -124,7 +123,7 @@ class DaggerModuleFile {
     writeLine(writer, "");
     writeLine(writer, "  /** Binds the type of the config with a ConfigValue annotation to the Configurable's value. */");
     writeLine(writer, "  @Provides");
-    Optional<Annotation> qualifier = config.qualifier();
+    Optional<String> qualifier = config.qualifier();
     if (qualifier.isPresent()) {
       writeLine(writer, "  %s", qualifier.get());
     } else {

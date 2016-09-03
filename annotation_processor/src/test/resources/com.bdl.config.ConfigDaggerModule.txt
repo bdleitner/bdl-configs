@@ -28,7 +28,7 @@ public class ConfigDaggerModule {
   @Provides
   @ConfigValue("otherFlag1")
   public static java.lang.String provideConfigValue_otherFlag1(Configuration configuration) {
-    return configuration.get("otherFlag1");
+    return configuration.get("com.bdl.config.others.OtherThingA.otherFlag1");
   }
 
   /** Adds a ConfigSupplier for config otherFlag2 (com.bdl.config.others.OtherThingA.otherFlag2) to the set multibinder. */
@@ -47,7 +47,7 @@ public class ConfigDaggerModule {
   @Provides
   @ConfigValue("otherFlag2")
   public static java.lang.String provideConfigValue_otherFlag2(Configuration configuration) {
-    return configuration.get("otherFlag2");
+    return configuration.get("com.bdl.config.others.OtherThingA.otherFlag2");
   }
 
   /** Adds a ConfigSupplier for config flag2 (com.bdl.config.things.Thing2.flag2) to the set multibinder. */
@@ -66,6 +66,6 @@ public class ConfigDaggerModule {
   @Provides
   @ConfigValue("flag2")
   public static java.lang.String provideConfigValue_flag2(Configuration configuration) {
-    return configuration.get("flag2");
+    return configuration.get("com.bdl.config.things.Thing2.flag2");
   }
 }

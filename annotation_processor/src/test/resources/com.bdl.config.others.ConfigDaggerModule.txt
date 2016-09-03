@@ -28,6 +28,6 @@ public class ConfigDaggerModule {
   @Provides
   @ConfigValue("otherFlag3")
   public static java.lang.String provideConfigValue_otherFlag3(Configuration configuration) {
-    return configuration.get("otherFlag3");
+    return configuration.get("com.bdl.config.others.OtherThingA.otherFlag3");
   }
 }

@@ -46,7 +46,7 @@ public class MainConfigDaggerModule {
   }
 
   @Module
-  static abstract class SetModule {
+  public static abstract class SetModule {
     @Multibinds abstract Set<ConfigSupplier> declaresConfigSupplierSet();
   }
 }

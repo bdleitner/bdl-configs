@@ -5,12 +5,13 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
-import javax.lang.model.element.Modifier;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+
+import javax.lang.model.element.Modifier;
 
 /**
  * A representation of a Dagger Module file that can write itself out, given a Function that provides
@@ -126,7 +127,7 @@ class DaggerModuleFile {
     writeLine(writer, "  @ConfigValue(\"%s\")", config.name());
     writeLine(writer, "  public static %s provideConfigValue_%s(Configuration configuration) {",
         config.type(), config.name());
-    writeLine(writer, "    return configuration.get(\"%s\");", config.name());
+    writeLine(writer, "    return configuration.get(\"%s\");", config.fullyQualifiedPathName());
     writeLine(writer, "  }");
   }
 

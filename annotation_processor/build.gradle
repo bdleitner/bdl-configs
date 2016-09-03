@@ -1,6 +1,6 @@
 dependencies {
-    compileOnly 'com.google.auto.value:auto-value:1.3-rc2'
+    compile 'com.google.auto.value:auto-value:1.3-rc2'
     compile project(':configs')
     apt 'com.google.auto.value:auto-value:1.3-rc2'
-
+    testApt 'com.google.auto.value:auto-value:1.3-rc2'
 }

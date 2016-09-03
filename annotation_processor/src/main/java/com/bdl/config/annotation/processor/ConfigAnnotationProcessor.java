@@ -30,7 +30,7 @@ public class ConfigAnnotationProcessor extends AbstractProcessor {
 
     for (Element element : roundEnv.getElementsAnnotatedWith(Config.class)) {
       if (element.getKind() == ElementKind.FIELD) {
-        foundConfigs.add(ConfigMetadata.fromElement(element));
+        foundConfigs.add(ConfigMetadata.fromField(element));
       }
     }
     if (foundConfigs.isEmpty()) {

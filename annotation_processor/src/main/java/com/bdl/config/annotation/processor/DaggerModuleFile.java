@@ -2,11 +2,13 @@ package com.bdl.config.annotation.processor;
 
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.lang.annotation.Annotation;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -122,7 +124,13 @@ class DaggerModuleFile {
     writeLine(writer, "");
     writeLine(writer, "  /** Binds the type of the config with a ConfigValue annotation to the Configurable's value. */");
     writeLine(writer, "  @Provides");
-    writeLine(writer, "  @ConfigValue(\"%s\")", config.name());
+    Optional<Annotation> qualifier = config.qualifier();
+    if (qualifier.isPresent()) {
+      writeLine(writer, "  %s", qualifier.get());
+    } else {
+      writeLine(writer, "  @ConfigValue(\"%s\")", config.name());
+    }
+
     writeLine(writer, "  public static %s provideConfigValue_%s(Configuration configuration) {",
         config.type(), config.name());
     writeLine(writer, "    return configuration.get(\"%s\");", config.fullyQualifiedPathName());

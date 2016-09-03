@@ -3,12 +3,19 @@ package com.bdl.config.annotation.processor;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Optional;
+import com.google.common.base.Preconditions;
+import com.google.inject.BindingAnnotation;
 
 import com.bdl.config.Config;
 
+import java.lang.annotation.Annotation;
 import java.util.Set;
 
+import javax.annotation.Nullable;
+import javax.inject.Qualifier;
+import javax.lang.model.element.AnnotationMirror;
 import javax.lang.model.element.Element;
+import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
 import javax.lang.model.type.DeclaredType;
@@ -34,6 +41,8 @@ public abstract class ConfigMetadata implements Comparable<ConfigMetadata> {
   public abstract String type();
   public abstract Optional<String> specifiedName();
   public abstract Optional<String> description();
+  public abstract Optional<Annotation> qualifier();
+  public abstract Optional<Annotation> bindingAnnotation();
 
   public String fullyQualifiedPathName() {
     return String.format("%s.%s.%s", packageName(), className(), fieldName());
@@ -49,27 +58,37 @@ public abstract class ConfigMetadata implements Comparable<ConfigMetadata> {
     return String.CASE_INSENSITIVE_ORDER.compare(fullyQualifiedPathName(), that.fullyQualifiedPathName());
   }
 
-  public static ConfigMetadata fromElement(Element element) {
+  public static ConfigMetadata fromField(Element field) {
+    Preconditions.checkState(field.getKind() == ElementKind.FIELD,
+        "Element %s is not a field.", field);
     ConfigMetadata.Builder metadata = ConfigMetadata.builder();
-    Element enclosingClass = element.getEnclosingElement();
+    Element enclosingClass = field.getEnclosingElement();
     String qualifiedName = ((TypeElement) enclosingClass).getQualifiedName().toString();
     int lastDot = qualifiedName.lastIndexOf('.');
     metadata.packageName(qualifiedName.substring(0, lastDot));
     metadata.className(qualifiedName.substring(lastDot + 1));
-    metadata.fieldName(element.getSimpleName().toString());
+    metadata.fieldName(field.getSimpleName().toString());
 
-    TypeMirror type = element.asType();
+    TypeMirror type = field.asType();
     String configType = ((DeclaredType) type).getTypeArguments().get(0).toString();
     metadata.type(configType);
 
-    metadata.visibility(getVisibility(element, enclosingClass));
+    metadata.visibility(getVisibility(field, enclosingClass));
 
-    Config annotation = element.getAnnotation(Config.class);
+    Config annotation = field.getAnnotation(Config.class);
     if (!annotation.desc().isEmpty()) {
       metadata.description(annotation.desc());
     }
     if (!annotation.name().isEmpty()) {
       metadata.specifiedName(annotation.name());
+    }
+    Annotation qualifier = getQualifierOrNull(field);
+    if (qualifier != null) {
+      metadata.qualifier(qualifier);
+    }
+    Annotation bindingAnnotation = getBindingAnnotationOrNull(field);
+    if (bindingAnnotation != null) {
+      metadata.bindingAnnotation(bindingAnnotation);
     }
     return metadata.build();
   }
@@ -88,6 +107,29 @@ public abstract class ConfigMetadata implements Comparable<ConfigMetadata> {
     return Visibility.PACKAGE;
   }
 
+  @Nullable
+  private static Annotation getQualifierOrNull(Element field) {
+    for (AnnotationMirror annotation : field.getAnnotationMirrors()) {
+      DeclaredType annotationType = annotation.getAnnotationType();
+      Qualifier qualifier = annotationType.getAnnotation(Qualifier.class);
+      if (qualifier != null) {
+        return null;
+      }
+    }
+    return null;
+  }
+
+  @Nullable
+  private static Annotation getBindingAnnotationOrNull(Element field) {
+    for (AnnotationMirror annotation : field.getAnnotationMirrors()) {
+      BindingAnnotation bindingAnnotation = annotation.getAnnotationType().getAnnotation(BindingAnnotation.class);
+      if (bindingAnnotation != null) {
+        return bindingAnnotation;
+      }
+    }
+    return null;
+  }
+
   public static Builder builder() {
     return new AutoValue_ConfigMetadata.Builder();
   }
@@ -101,6 +143,8 @@ public abstract class ConfigMetadata implements Comparable<ConfigMetadata> {
     public abstract Builder type(String type);
     public abstract Builder specifiedName(String specifiedName);
     public abstract Builder description(String description);
+    public abstract Builder qualifier(Annotation qualifier);
+    public abstract Builder bindingAnnotation(Annotation bindingAnnotation);
     public abstract ConfigMetadata build();
   }
 }

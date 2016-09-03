@@ -43,6 +43,7 @@ public class DaggerModulesTest {
             .fieldName("flag2")
             .type("java.lang.String")
             .visibility(ConfigMetadata.Visibility.PUBLIC)
+            .qualifier(Annotations.qualifier("flag2"))
             .build());
     tree.addConfig(
         ConfigMetadata.builder()
@@ -67,6 +68,7 @@ public class DaggerModulesTest {
             .fieldName("otherFlag3")
             .type("java.lang.String")
             .visibility(ConfigMetadata.Visibility.PACKAGE)
+            .qualifier(Annotations.qualifier(""))
             .build());
 
     tree.pushPublicAndPrivateConfigsDown();

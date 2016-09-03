@@ -1,0 +1,33 @@
+package com.bdl.config.others;
+
+import com.bdl.config.ConfigDescription;
+import com.bdl.config.ConfigSupplier;
+import com.bdl.config.ConfigValue;
+
+import dagger.Module;
+import dagger.Provides;
+import dagger.multibindings.IntoSet;
+
+/** Dagger module for binding configs in the com.bdl.config.others package. */
+@Module
+public class ConfigDaggerModule {
+
+  /** Adds a ConfigSupplier for config otherFlag3 (com.bdl.config.others.OtherThingA.otherFlag3) to the set multibinder. */
+  @Provides
+  @IntoSet
+  public static ConfigSupplier provideConfigSupplier_otherFlag3() {
+    ConfigDescription description = ConfigDescription.builder()
+        .className("OtherThingA")
+        .fieldName("otherFlag3")
+        .type("java.lang.String")
+        .build();
+    return ConfigSupplier.simple(description, com.bdl.config.others.OtherThingA.otherFlag3);
+  }
+
+  /** Binds the type of the config with a ConfigValue annotation to the Configurable's value. */
+  @Provides
+  @ConfigValue("otherFlag3")
+  public static java.lang.String provideConfigValue_otherFlag3(Configuration configuration) {
+    return configuration.get("otherFlag3");
+  }
+}

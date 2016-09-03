@@ -1,0 +1,33 @@
+package com.bdl.config.things;
+
+import com.bdl.config.ConfigDescription;
+import com.bdl.config.ConfigSupplier;
+import com.bdl.config.ConfigValue;
+
+import dagger.Module;
+import dagger.Provides;
+import dagger.multibindings.IntoSet;
+
+/** Dagger module for binding configs in the com.bdl.config.things package. */
+@Module
+public class ConfigDaggerModule {
+
+  /** Adds a ConfigSupplier for config flag1 (com.bdl.config.things.Thing1.flag1) to the set multibinder. */
+  @Provides
+  @IntoSet
+  public static ConfigSupplier provideConfigSupplier_flag1() {
+    ConfigDescription description = ConfigDescription.builder()
+        .className("Thing1")
+        .fieldName("flag1")
+        .type("java.lang.String")
+        .build();
+    return ConfigSupplier.simple(description, com.bdl.config.things.Thing1.flag1);
+  }
+
+  /** Binds the type of the config with a ConfigValue annotation to the Configurable's value. */
+  @Provides
+  @ConfigValue("flag1")
+  public static java.lang.String provideConfigValue_flag1(Configuration configuration) {
+    return configuration.get("flag1");
+  }
+}

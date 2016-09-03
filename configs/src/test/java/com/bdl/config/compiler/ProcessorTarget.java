@@ -4,7 +4,7 @@ import com.bdl.config.Config;
 import com.bdl.config.Configurable;
 
 /**
- * TODO: JavaDoc this class.
+ * Dummy target class to create modules for the configs within.
  *
  * @author Ben Leitner
  */

@@ -1,5 +1,7 @@
 package com.bdl.config;
 
+import com.google.common.collect.ImmutableList;
+
 import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.Multibinds;
@@ -29,8 +31,18 @@ public class MainConfigDaggerModule {
 
   private final List<String> arguments;
 
-  public MainConfigDaggerModule(List<String> arguments) {
+  private MainConfigDaggerModule(List<String> arguments) {
     this.arguments = arguments;
+  }
+
+  /** Creates a new {@link MainConfigDaggerModule} using the given strings as inputs. */
+  public static MainConfigDaggerModule forArguments(String... arguments) {
+    return forArguments(ImmutableList.copyOf(arguments));
+  }
+
+  /** Creates a new {@link MainConfigDaggerModule} using the given strings as inputs. */
+  public static MainConfigDaggerModule forArguments(Iterable<String> arguments) {
+    return new MainConfigDaggerModule(ImmutableList.copyOf(arguments));
   }
 
   @Provides

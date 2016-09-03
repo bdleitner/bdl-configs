@@ -1,8 +1,18 @@
 package com.bdl.config.compiler;
 
+import static com.google.common.truth.Truth.assertThat;
+
+import com.bdl.config.ConfigValue;
+import com.bdl.config.Configuration;
+import com.bdl.config.MainConfigDaggerModule;
+
+import dagger.Component;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
+
+import javax.inject.Inject;
+import javax.inject.Singleton;
 
 /**
  * Tests the output of the {@code ConfigAnnotationProcessor}.
@@ -15,33 +25,30 @@ public class ConfigAnnotationProcessorTest {
   @Test
   public void testConfigInjection() throws Exception {
     // TODO: Reengineer test, probably move to annotation_processor project.
-//    ConfigComponent configComponent = DaggerConfigAnnotationProcessorTest_ConfigComponent.create();
-//    Configuration configs = configComponent.getConfigs();
-//    configs.parseConfigs("--here_is_a_config=foo");
-//
-//    InjectingComponent injectingComponent = DaggerConfigAnnotationProcessorTest_InjectingComponent.create();
-//    InjectionTarget target = injectingComponent.getTarget();
+    ConfigComponent configComponent = DaggerConfigAnnotationProcessorTest_ConfigComponent.builder()
+        .mainConfigDaggerModule(MainConfigDaggerModule.forArguments("--here_is_a_config=foo"))
+        .build();
+    Configuration configs = configComponent.getConfigs();
+    assertThat(configs).isNotNull();
+//    InjectionTarget target = configComponent.getTarget();
 //    assertThat(target.configValue).isEqualTo("foo");
   }
-//
-//  static class InjectionTarget {
-//    private final String configValue;
-//
-//    @Inject
-//    InjectionTarget(@ConfigValue("here_is_a_config") String configValue) {
-//
-//      this.configValue = configValue;
-//    }
-//  }
-//
-//  @Component(modules = ConfigDaggerModule.class)
-//  @Singleton
-//  interface ConfigComponent {
-//    Configuration getConfigs();
-//  }
-//
-//  @Component(modules = ConfigDaggerModule.class)
-//  interface InjectingComponent {
+
+  static class InjectionTarget {
+    private final String configValue;
+
+    @Inject
+    InjectionTarget(@ConfigValue("here_is_a_config") String configValue) {
+
+      this.configValue = configValue;
+    }
+  }
+
+  @Component(modules = {MainConfigDaggerModule.class})
+  @Singleton
+  interface ConfigComponent {
+    Configuration getConfigs();
+
 //    InjectionTarget getTarget();
-//  }
+  }
 }

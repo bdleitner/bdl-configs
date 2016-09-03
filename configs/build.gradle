@@ -7,5 +7,5 @@ dependencies {
     compile 'javax.inject:javax.inject:1'
 
     apt 'com.google.auto.value:auto-value:1.3-rc2'
-//    testApt project(':annotation_processor')
+    testApt project(':annotation_processor')
 }

@@ -149,9 +149,9 @@ the value to `true` and `--no[config_name]` will set it to `false`.
   * `system_config` - the value is a comma-separated list of names of System Properties from which
   to read values.
  
- ## Configuration
- If using injection, a `@Singleton Configuration` class becomes available for injection.
- The `Configuration` class exposes a number of methods for interacting with configurables.  It
- allows for getting/setting configurable values by name.  It also works with the
-  `ConfigObjectWriter` and `ConfigStringWriter` classes to support exporting all current config
-  information (e.g. for persistence elsewhere).
+## Configuration
+If using injection, a `@Singleton Configuration` class becomes available for injection.
+The `Configuration` class exposes a number of methods for interacting with configurables.  It
+allows for getting/setting configurable values by name.  It also works with the
+`ConfigObjectWriter` and `ConfigStringWriter` classes to support exporting all current config
+information (e.g. for persistence elsewhere).

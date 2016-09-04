@@ -13,7 +13,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 
 import com.bdl.config.ConfigChangeListener.ListenerRegistration;
-import com.bdl.config.ConfigException.ConfigTypeMismatchException;
+import com.bdl.config.ConfigException.TypeMismatchException;
 
 import java.util.List;
 import java.util.Set;
@@ -31,7 +31,7 @@ public final class Configurable<T> {
   private final T defaultValue;
   private final Predicate<? super T> predicate;
   private final Function<String, T> parser;
-  private final boolean lockable;
+  private final boolean readOnlyAfterRead;
   private final Set<ConfigChangeListener<T>> listeners;
 
   /**
@@ -46,13 +46,13 @@ public final class Configurable<T> {
       T defaultValue,
       Predicate<? super T> predicate,
       Function<String, T> parser,
-      boolean lockable) {
+      boolean readOnlyAfterRead) {
     this.type = type;
     this.defaultValue = defaultValue;
     this.predicate = predicate;
     this.parser = parser;
     value = defaultValue;
-    this.lockable = lockable;
+    this.readOnlyAfterRead = readOnlyAfterRead;
     if (!predicate.apply(value)) {
       throw new InvalidConfigValueException(value.toString()).wrap();
     }
@@ -71,6 +71,10 @@ public final class Configurable<T> {
     return type;
   }
 
+  boolean isReadOnly() {
+    return readOnlyAfterRead && read && !Configuration.isConfigSetCheckDisabled();
+  }
+
   /**
    * Checks that the config can be set.  A config's value may not be set after it is read.
    * This check can be disabled for testing using {@link Configuration#disableConfigSetCheck()}
@@ -78,14 +82,14 @@ public final class Configurable<T> {
    * @throws IllegalConfigStateException if this config has already been read
    */
   private void checkSetState() throws IllegalConfigStateException {
-    if (lockable && read && !Configuration.isConfigSetCheckDisabled()) {
+    if (isReadOnly()) {
       throw new IllegalConfigStateException();
     }
   }
 
   private T checkValue(T value) throws InvalidConfigValueException {
     if (value == null || !type.equals(value.getClass())) {
-      throw new ConfigTypeMismatchException(this.value, value).wrap();
+      throw new TypeMismatchException(this.value, value).wrap();
     }
     if (!predicate.apply(value)) {
       throw new InvalidConfigValueException(value.toString());
@@ -94,18 +98,8 @@ public final class Configurable<T> {
   }
 
   /** Sets this config's value from the specified string. */
-  Configurable<T> setFromString(String valueString) throws ConfigException {
-    checkSetState();
-    if (valueString == null) {
-      if (Configuration.isConfigSetCheckDisabled()) {
-        value = null;
-      } else {
-        throw new NullPointerException();
-      }
-    } else {
-      value = checkValue(parser.apply(valueString));
-    }
-    return this;
+  T setFromString(String valueString) throws ConfigException {
+    return setValue(parser.apply(Preconditions.checkNotNull(valueString, "New config string value cannot be null.")));
   }
 
   /** Registers a listener to the configurable. */
@@ -116,7 +110,9 @@ public final class Configurable<T> {
   /** Registers a listener to the configurable, including firing an initial event to sent the current value. */
   public ListenerRegistration registerListener(final ConfigChangeListener<T> listener, boolean listen) {
     listeners.add(listener);
-    listener.onConfigurationChange(value);
+    if (listen) {
+      listener.onConfigurationChange(value);
+    }
     return new ListenerRegistration() {
       @Override
       public void unregister() {
@@ -128,60 +124,45 @@ public final class Configurable<T> {
   /**
    * Sets the config to a new value.
    * <p>
-   * If the configurable is lockable (a flag), this method will fail if the value has been read unless
+   * If the configurable is read-only-after-read (a flag), this method will fail if the value has been read unless
    * state checking is disabled.
    *
-   * @param value the new value to assign to this config
+   * @param value the new value to assign to this config.
+   * @return the prior value held by the config.
+   * @throws ConfigException if an error occurs:
+   * <ul>
+   *   <li> {@link ConfigException.IllegalConfigStateException} if the configurable is not writable.</li>
+   *   <li> {@link ConfigException.InvalidConfigValueException} if the given value is not valid for the config.</li>
+   * </ul>
    * @see Configuration#disableConfigSetCheck()
    */
-  public void setValue(T value) throws InvalidConfigValueException, IllegalConfigStateException {
+  public T setValue(T value) throws ConfigException {
     checkSetState();
-    if (!fireBeforeChange()) {
-      fireChangeCancelled(value);
-      return;
-    }
+    T oldValue = this.value;
     synchronized (this) {
       this.value = checkValue(value);
     }
     fireOnChange();
-  }
-
-  /** Resets the config to its default value. */
-  public void reset() {
-    fireBeforeChange();
-    synchronized (this) {
-      this.value = defaultValue;
-    }
-    fireOnChange();
+    return oldValue;
   }
 
   /**
-   * Alerts the listeners that a change is coming.
+   * Resets the config to its default value.
    *
-   * @return {@code true} if no listeners blocked the change, {@code false} otherwise.
+   * @return the prior value held by the config.
+   * @throws ConfigException if an error occurs:
+   * <ul>
+   *   <li> {@link ConfigException.IllegalConfigStateException} if the configurable is not writable.</li>
+   * </ul>
    */
-  private boolean fireBeforeChange() {
-    T oldValue = get();
-    boolean cleared = true;
-    for (ConfigChangeListener<T> listener : listeners) {
-      if (!listener.beforeConfigurationChange(oldValue)) {
-        cleared = false;
-      }
-    }
-    return cleared;
+  public T reset() throws ConfigException {
+    return setValue(defaultValue);
   }
 
   private void fireOnChange() {
     T newValue = get();
     for (ConfigChangeListener<T> listener : listeners) {
       listener.onConfigurationChange(newValue);
-    }
-  }
-
-  private void fireChangeCancelled(T cancelledValue) {
-    T oldValue = get();
-    for (ConfigChangeListener<T> listener : listeners) {
-      listener.onChangeCancelled(oldValue, cancelledValue);
     }
   }
 
@@ -202,7 +183,7 @@ public final class Configurable<T> {
 
   /** Creates a new Configurable.Builder with the default value */
   public static <T> Configurable<T> flag(T defaultValue) {
-    return Configurable.<T>builder().withDefaultValue(defaultValue).makeLockable().build();
+    return Configurable.<T>builder().withDefaultValue(defaultValue).makeReadOnlyAfterRead().build();
   }
 
   /** Creates a new Configurable with the default value. */
@@ -212,7 +193,7 @@ public final class Configurable<T> {
 
   /** Creates a new Configurable with the default value. */
   public static <T, S extends T> Configurable<T> flag(Class<T> clazz, S defaultValue) {
-    return Configurable.<T>builder().withClass(clazz).withDefaultValue(defaultValue).makeLockable().build();
+    return Configurable.<T>builder().withClass(clazz).withDefaultValue(defaultValue).makeReadOnlyAfterRead().build();
   }
 
   /** Creates a new Configurable with no default value but of the given class. */
@@ -222,7 +203,7 @@ public final class Configurable<T> {
 
   /** Creates a new Configurable with no default value but of the given class. */
   public static <T> Configurable<T> noDefaultFlag(Class<T> clazz) {
-    return Configurable.<T>builder().withClass(clazz).makeLockable().build();
+    return Configurable.<T>builder().withClass(clazz).makeReadOnlyAfterRead().build();
   }
 
   /** Returns a config that gives a list of strings */
@@ -233,7 +214,7 @@ public final class Configurable<T> {
   /** Returns a config that gives a list of strings */
   public static Configurable<List<String>> stringListFlag(String... defaultValues) {
     Builder<List<String>> listBuilder = stringListConfigBuilder(defaultValues);
-    return listBuilder.makeLockable().build();
+    return listBuilder.makeReadOnlyAfterRead().build();
   }
 
   private static Builder<List<String>> stringListConfigBuilder(String[] defaultValues) {
@@ -257,7 +238,7 @@ public final class Configurable<T> {
     private T defaultValue;
     private Function<String, T> parser;
     private ImmutableList.Builder<Predicate<? super T>> predicates;
-    private boolean lockable;
+    private boolean readOnlyAfterRead;
 
     private Builder() {
       predicates = ImmutableList.builder();
@@ -295,8 +276,9 @@ public final class Configurable<T> {
       return this;
     }
 
-    public Builder<T> makeLockable() {
-      this.lockable = true;
+    /** Indicates that the Configurable should not be writable once its value has been read. */
+    public Builder<T> makeReadOnlyAfterRead() {
+      this.readOnlyAfterRead = true;
       return this;
     }
 
@@ -311,7 +293,7 @@ public final class Configurable<T> {
       }
 
 
-      return new Configurable<>(clazz, defaultValue, predicate, getParser(), lockable);
+      return new Configurable<>(clazz, defaultValue, predicate, getParser(), readOnlyAfterRead);
     }
 
     private Function<String,T> getParser() {

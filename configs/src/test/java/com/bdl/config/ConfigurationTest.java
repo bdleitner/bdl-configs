@@ -1,13 +1,15 @@
 package com.bdl.config;
 
 import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.fail;
 
 import com.google.common.base.Predicate;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableMultimap;
 
 import com.bdl.config.ConfigException.InvalidConfigValueException;
 
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -84,10 +86,51 @@ public class ConfigurationTest {
         .build();
     try {
       configurable.setFromString("-25");
-      Assert.fail();
+      fail();
     } catch (ConfigException ex) {
       // expected
       assertThat(ex).isInstanceOf(InvalidConfigValueException.class);
+    }
+  }
+
+  @Test
+  public void testListener() throws Exception {
+    Configurable<String> foo = Configurable.value("foo");
+    ConfigMap map = new ConfigMap(
+        ImmutableMap.<String, Configurable<?>>of("foo", foo),
+        ImmutableMultimap.<String, String>of());
+
+    Configuration configuration = new Configuration(map);
+
+    RecordingListener<String> listener = new RecordingListener<>();
+    ConfigChangeListener.ListenerRegistration handle = configuration.registerListener("foo", listener);
+    assertThat(listener.value).isNull();
+
+    foo.setValue("bar");
+    assertThat(listener.value).isEqualTo("bar");
+
+    configuration.update("foo", "baz");
+    assertThat(listener.value).isEqualTo("baz");
+
+    handle.unregister();
+
+    configuration.update("foo", "blargh");
+    assertThat(listener.value).isEqualTo("baz");
+
+    configuration.registerListener("foo", listener, true);
+    assertThat(listener.value).isEqualTo("blargh");
+
+    configuration.resetAllWritable();
+    assertThat(listener.value).isEqualTo("foo");
+  }
+
+  private static class RecordingListener<T> implements ConfigChangeListener<T> {
+
+    private T value;
+
+    @Override
+    public void onConfigurationChange(T newValue) {
+      this.value = newValue;
     }
   }
 }

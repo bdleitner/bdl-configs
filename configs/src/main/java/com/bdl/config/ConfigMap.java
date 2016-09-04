@@ -1,5 +1,6 @@
 package com.bdl.config;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
@@ -22,7 +23,8 @@ class ConfigMap {
   private final Map<String, Configurable<?>> configs;
   private final Multimap<String, String> names;
 
-  private ConfigMap(Map<String, Configurable<?>> configs, Multimap<String, String> names) {
+  @VisibleForTesting
+  ConfigMap(Map<String, Configurable<?>> configs, Multimap<String, String> names) {
     this.configs = configs;
     this.names = names;
   }
@@ -35,7 +37,7 @@ class ConfigMap {
     return config;
   }
 
-  public Configurable<?> getOrNull(String key) {
+  Configurable<?> getOrNull(String key) {
     Collection<String> fullNames = names.get(key);
     if (fullNames != null && fullNames.size() == 1) {
       return configs.get(Iterables.getOnlyElement(fullNames));
@@ -47,7 +49,11 @@ class ConfigMap {
     return configs.get(key);
   }
 
-  public static Builder builder() {
+  Collection<Configurable<?>> getAll() {
+    return configs.values();
+  }
+
+  static Builder builder() {
     return new Builder();
   }
 

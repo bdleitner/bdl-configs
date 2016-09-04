@@ -12,7 +12,7 @@ import com.google.common.base.Optional;
  * @author Benjaming Leitner
  */
 @AutoValue
-abstract class ConfigDescription {
+public abstract class ConfigDescription {
 
   public abstract String packageName();
   public abstract String className();

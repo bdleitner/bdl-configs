@@ -5,7 +5,7 @@ package com.bdl.config;
  *
  * @author Ben Leitner
  */
-abstract class ConfigSupplier {
+public abstract class ConfigSupplier {
 
   /** Obtain the description of the Configurable. */
   abstract ConfigDescription getDescription();

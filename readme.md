@@ -127,10 +127,10 @@ the same `name`, then FQPN must be used.
 the value to `true` and `--no[config_name]` will set it to `false`.
 * If a string `--` is encountered, all further processing of values terminates.
 * There are three special config names that indicate other places to load config values
-    * `config_file` - the value for this argument is interpreted as a file from which to read more
+  * `config_file` - the value for this argument is interpreted as a file from which to read more
   config name-value pairs.
-    * `config_resource` - the value is treated as the URL of a Resource from which to read more
+  * `config_resource` - the value is treated as the URL of a Resource from which to read more
   config name-value pairs.
-    * `system_config` - the value is a comma-separated list of names of System Properties from which
+  * `system_config` - the value is a comma-separated list of names of System Properties from which
   to read values.
  

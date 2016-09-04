@@ -17,7 +17,7 @@ import java.util.regex.Pattern;
  *
  * @author Benjamin Leitner
  */
-public abstract class ExternalConfigLoader {
+abstract class ExternalConfigLoader {
 
   static final List<ExternalConfigLoader> LOADERS = Lists.newArrayList(
       fromFile(),

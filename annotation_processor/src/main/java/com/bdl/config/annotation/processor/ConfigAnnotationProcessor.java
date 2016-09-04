@@ -59,26 +59,39 @@ public class ConfigAnnotationProcessor extends AbstractProcessor {
     }
     tree.pullPublicAndPrivateConfigsUp();
 
-    DaggerModuleFile rootModuleFile = tree.toModuleFile();
     try {
       messager.printMessage(Diagnostic.Kind.NOTE,
           String.format("Found %s configs.", foundConfigs.size()));
-      rootModuleFile.write(new Function<String, Writer>() {
-        @Override
-        public Writer apply(String input) {
-          try {
-            JavaFileObject jfo = processingEnv.getFiler().createSourceFile("com.bdl.ConfigDaggerModule");
-            return jfo.openWriter();
-          } catch (IOException ex) {
-            throw new RuntimeException(ex);
-          }
-        }
-      });
+      DaggerModuleFileWriterVisitor visitor = new DaggerModuleFileWriterVisitor(
+          messager, new JavaFileObjectWriterFunction(processingEnv, "ConfigDaggerModule"));
+      tree.visit(visitor);
+
     } catch (Exception ex) {
       messager.printMessage(
           Diagnostic.Kind.ERROR,
           ex.getMessage());
     }
     return true;
+  }
+
+  private static class JavaFileObjectWriterFunction implements Function<String, Writer> {
+
+    private final ProcessingEnvironment env;
+    private final String className;
+
+    private JavaFileObjectWriterFunction(ProcessingEnvironment env, String className) {
+      this.env = env;
+      this.className = className;
+    }
+
+    @Override
+    public Writer apply(String input) {
+      try {
+        JavaFileObject jfo = env.getFiler().createSourceFile(String.format("%s.%s", input, className));
+        return jfo.openWriter();
+      } catch (IOException ex) {
+        throw new RuntimeException(ex);
+      }
+    }
   }
 }

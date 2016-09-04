@@ -24,7 +24,7 @@ import javax.lang.model.element.Element;
 import javax.tools.Diagnostic;
 
 /**
- * Tests for the combined functionality of {@link ConfigPackageTree} and {@link DaggerModuleFile}.
+ * Tests for the combined functionality of {@link ConfigPackageTree} and {@link DaggerModuleFileWriterVisitor}.
  *
  * @author Ben Leitner
  */
@@ -106,11 +106,10 @@ public class DaggerModulesTest {
 
     tree.pullPublicAndPrivateConfigsUp();
 
-    DaggerModuleFile rootFile = tree.toModuleFile();
+    final Map<String, Writer> writerMap = Maps.newHashMap();
 
-    final Map<String, Writer>  writerMap = Maps.newHashMap();
-
-    rootFile.write(new Function<String, Writer>() {
+    DaggerModuleFileWriterVisitor daggerVisitor = new DaggerModuleFileWriterVisitor(
+        DO_NOTHING_MESSAGER, new Function<String, Writer>() {
       @Override
       public Writer apply(String input) {
         StringWriter writer = new StringWriter();
@@ -119,6 +118,7 @@ public class DaggerModulesTest {
       }
     });
 
+    tree.visit(daggerVisitor);
     for (Map.Entry<String, Writer> entry : writerMap.entrySet()) {
       URL resource = getClass().getClassLoader().getResource(entry.getKey() + ".txt");
       String file = Resources.toString(resource, Charsets.UTF_8);

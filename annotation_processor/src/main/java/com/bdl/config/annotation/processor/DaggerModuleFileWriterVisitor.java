@@ -3,7 +3,9 @@ package com.bdl.config.annotation.processor;
 import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
+import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
 import java.io.IOException;
@@ -12,63 +14,53 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.processing.Messager;
+import javax.tools.Diagnostic;
+
 /**
  * A representation of a Dagger Module file that can write itself out, given a Function that provides
  * writers for strings.
  *
  * @author Ben Leitner
  */
-class DaggerModuleFile {
+class DaggerModuleFileWriterVisitor implements ConfigPackageTree.Visitor<String> {
 
-  private final String packageName;
-  private final String fullyQualifiedFileName;
-  private final List<ConfigMetadata> configs;
-  private final Set<DaggerModuleFile> subpackageFiles;
+  private final Messager messager;
+  private final Function<String, Writer> writerFunction;
 
-  DaggerModuleFile(
-      String fullyQualifiedFileName,
-      Set<ConfigMetadata> configs,
-      Set<DaggerModuleFile> subpackageFiles) {
-    this.fullyQualifiedFileName = fullyQualifiedFileName;
-    int lastDot = fullyQualifiedFileName.lastIndexOf('.');
-    packageName = lastDot < 0 ? "<empty>" : fullyQualifiedFileName.substring(0, lastDot);
-    this.configs = Lists.newArrayList();
-    this.configs.addAll(configs);
-    Collections.sort(this.configs);
-    this.subpackageFiles = subpackageFiles;
+  DaggerModuleFileWriterVisitor(Messager messager, Function<String, Writer> writerFunction) {
+    this.messager = messager;
+    this.writerFunction = writerFunction;
   }
 
-  private Set<String> getNonemptyImmediateChildFilenames() {
-    ImmutableSet.Builder<String> names = ImmutableSet.builder();
-    for (DaggerModuleFile file : subpackageFiles) {
-      if (file.configs.isEmpty()) {
-        names.addAll(file.getNonemptyImmediateChildFilenames());
-      } else {
-        names.add(file.fullyQualifiedFileName);
-      }
-    }
-    return names.build();
-  }
-
-  void write(Function<String, Writer> writerFunction) throws IOException {
-    for (DaggerModuleFile subpackageFile : subpackageFiles) {
-      subpackageFile.write(writerFunction);
-    }
+  @Override
+  public Set<String> visit(Set<String> childOutputs, String packageName, Set<ConfigMetadata> configs) {
     if (configs.isEmpty()) {
-      return;
+      return childOutputs;
     }
-    Writer writer = writerFunction.apply(fullyQualifiedFileName);
-    writeClassOpening(writer);
-    for (ConfigMetadata config : configs) {
-      writeConfigSupplierBinding(writer, config);
-      writeConfigValueBinding(writer, config);
-    }
-    writeClassClosing(writer);
 
-    writer.close();
+    List<ConfigMetadata> orderedConfigs = Lists.newArrayList(configs);
+    Collections.sort(orderedConfigs);
+
+    try {
+      Writer writer = writerFunction.apply(PackageNameUtil.append(packageName, "ConfigDaggerModule"));
+      writeClassOpening(writer, packageName, childOutputs);
+      for (ConfigMetadata config : orderedConfigs) {
+        writeConfigSupplierBinding(writer, config);
+        writeConfigValueBinding(writer, config);
+      }
+      writeClassClosing(writer);
+
+      writer.close();
+    } catch (IOException ex) {
+      messager.printMessage(Diagnostic.Kind.ERROR,
+          Throwables.getStackTraceAsString(ex));
+    }
+
+    return ImmutableSet.of(packageName);
   }
 
-  private void writeClassOpening(Writer writer) throws IOException {
+  private void writeClassOpening(Writer writer, String packageName, Set<String> childPackages) throws IOException {
     writeLine(writer, "package %s;", packageName);
     writeLine(writer, "");
     writeLine(writer, "import com.bdl.config.Configuration;");
@@ -83,11 +75,16 @@ class DaggerModuleFile {
     writeLine(writer, "");
     writeLine(writer, "/** Dagger module for binding configs in the %s package. */", packageName);
 
-    Set<String> includes = getNonemptyImmediateChildFilenames();
-    if (includes.isEmpty()) {
+    if (childPackages.isEmpty()) {
       writeLine(writer, "@Module");
     } else {
-      writeLine(writer, "@Module(includes = {%s})", Joiner.on(", ").join(includes));
+      writeLine(writer, "@Module(includes = {%s})", Joiner.on(", ").join(
+          Iterables.transform(childPackages, new Function<String, String>() {
+            @Override
+            public String apply(String input) {
+              return String.format("%s.ConfigDaggerModule", input);
+            }
+          })));
     }
     writeLine(writer, "public class ConfigDaggerModule {");
   }

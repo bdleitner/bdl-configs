@@ -1,6 +1,5 @@
 package com.bdl.config.annotation.processor;
 
-import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
@@ -18,6 +17,12 @@ import javax.tools.Diagnostic;
  * @author Ben Leitner
  */
 class ConfigPackageTree {
+
+  /** Interface for classes that visit the nodes and act on the configs.*/
+  interface Visitor<T> {
+    /** Called upon visiting a node. */
+    Set<T> visit(Set<T> childOutputs, String packageName, Set<ConfigMetadata> configs);
+  }
 
   private final Node root;
 
@@ -42,17 +47,17 @@ class ConfigPackageTree {
     return common;
   }
 
-  DaggerModuleFile toModuleFile() {
-    return root.toModuleFile("");
+  <T> void visit(Visitor<T> visitor) {
+    root.visit(visitor);
   }
 
   private static class Node {
-    private final String packagePart;
+    private final String packageName;
     private final Map<String, Node> children;
     private final Set<ConfigMetadata> configs;
 
-    private Node(String packagePart) {
-      this.packagePart = packagePart;
+    private Node(String packageName) {
+      this.packageName = packageName;
       children = Maps.newHashMap();
       configs = Sets.newHashSet();
     }
@@ -60,21 +65,22 @@ class ConfigPackageTree {
     private Node getChild(String packagePart) {
       Node child = children.get(packagePart);
       if (child == null) {
-        child = new Node(packagePart);
+        String childPackage = PackageNameUtil.append(packageName, packagePart);
+        child = new Node(childPackage);
         children.put(packagePart, child);
       }
       return child;
     }
 
-    private void addConfigToPackage(Messager messager, String packageName, ConfigMetadata config) {
-      if (packageName.isEmpty()) {
+    private void addConfigToPackage(Messager messager, String packageNameTail, ConfigMetadata config) {
+      if (packageNameTail.isEmpty()) {
         messager.printMessage(Diagnostic.Kind.NOTE,
             String.format("Adding %s config %s to package %s.",
-                config.visibility(), config.fullyQualifiedPathName(), packagePart));
+                config.visibility(), config.fullyQualifiedPathName(), this.packageName));
         configs.add(config);
         return;
       }
-      String[] parts = packageName.split("\\.", 2);
+      String[] parts = packageNameTail.split("\\.", 2);
       getChild(parts[0]).addConfigToPackage(messager, parts[1], config);
     }
 
@@ -109,16 +115,12 @@ class ConfigPackageTree {
       return configs.isEmpty();
     }
 
-    DaggerModuleFile toModuleFile(String prefix) {
-      String thisPackage = prefix + packagePart;
-      ImmutableSet.Builder<DaggerModuleFile> files = ImmutableSet.builder();
+    private <T> Set<T> visit(Visitor<T> visitor) {
+      Set<T> childOutputs = Sets.newHashSet();
       for (Map.Entry<String, Node> entry : children.entrySet()) {
-        files.add(entry.getValue().toModuleFile(thisPackage.isEmpty() ? "" : thisPackage + "."));
+        childOutputs.addAll(entry.getValue().visit(visitor));
       }
-      return new DaggerModuleFile(
-          String.format("%s.ConfigDaggerModule", thisPackage),
-          configs,
-          files.build());
+      return visitor.visit(childOutputs, packageName, configs);
     }
   }
 }

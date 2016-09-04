@@ -16,8 +16,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.inject.Inject;
-
 /**
  * A class to process configuration settings from a list of strings and apply them to configs.
  *
@@ -37,10 +35,7 @@ class ConfigProcessor {
 
   private ConfigMap configs;
 
-  @Inject
-  ConfigProcessor(
-      @MainConfigDaggerModule.ForConfigArguments List<String> arguments,
-      Set<ConfigSupplier> configSuppliers) {
+  ConfigProcessor(List<String> arguments, Set<ConfigSupplier> configSuppliers) {
     this.arguments = ImmutableList.copyOf(arguments);
     this.configSuppliers = configSuppliers;
   }

@@ -62,9 +62,14 @@ public class ConfigAnnotationProcessor extends AbstractProcessor {
     try {
       messager.printMessage(Diagnostic.Kind.NOTE,
           String.format("Found %s configs.", foundConfigs.size()));
-      DaggerModuleFileWriterVisitor visitor = new DaggerModuleFileWriterVisitor(
-          messager, new JavaFileObjectWriterFunction(processingEnv, "ConfigDaggerModule"));
-      tree.visit(visitor);
+
+      DaggerModuleFileWriterVisitor daggerVisitor = new DaggerModuleFileWriterVisitor(
+          messager, new JavaFileObjectWriterFunction(processingEnv));
+      tree.visit(daggerVisitor);
+
+      GuiceModuleFileWriterVisitor guiceVisitor = new GuiceModuleFileWriterVisitor(
+          messager, new JavaFileObjectWriterFunction(processingEnv));
+      tree.visit(guiceVisitor);
 
     } catch (Exception ex) {
       messager.printMessage(
@@ -77,17 +82,15 @@ public class ConfigAnnotationProcessor extends AbstractProcessor {
   private static class JavaFileObjectWriterFunction implements Function<String, Writer> {
 
     private final ProcessingEnvironment env;
-    private final String className;
 
-    private JavaFileObjectWriterFunction(ProcessingEnvironment env, String className) {
+    private JavaFileObjectWriterFunction(ProcessingEnvironment env) {
       this.env = env;
-      this.className = className;
     }
 
     @Override
     public Writer apply(String input) {
       try {
-        JavaFileObject jfo = env.getFiler().createSourceFile(String.format("%s.%s", input, className));
+        JavaFileObject jfo = env.getFiler().createSourceFile(input);
         return jfo.openWriter();
       } catch (IOException ex) {
         throw new RuntimeException(ex);

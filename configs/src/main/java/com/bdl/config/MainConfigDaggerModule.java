@@ -57,6 +57,12 @@ public class MainConfigDaggerModule {
     return processor.getConfigMap();
   }
 
+  @Provides
+  static ConfigProcessor provideConfigProcessor(
+      @ForConfigArguments List<String> arguments, Set<ConfigSupplier> suppliers) {
+    return new ConfigProcessor(arguments, suppliers);
+  }
+
   @Module
   public static abstract class SetModule {
     @Multibinds abstract Set<ConfigSupplier> declaresConfigSupplierSet();

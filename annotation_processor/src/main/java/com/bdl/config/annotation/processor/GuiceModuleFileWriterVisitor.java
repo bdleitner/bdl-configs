@@ -1,11 +1,9 @@
 package com.bdl.config.annotation.processor;
 
 import com.google.common.base.Function;
-import com.google.common.base.Joiner;
 import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
 import java.io.IOException;
@@ -18,16 +16,16 @@ import javax.annotation.processing.Messager;
 import javax.tools.Diagnostic;
 
 /**
- * Implementation of {@link ConfigPackageTree.Visitor} that writes out Dagger Module files.
+ * Implementation of {@link ConfigPackageTree.Visitor} that writes out Guice Module files.
  *
  * @author Ben Leitner
  */
-class DaggerModuleFileWriterVisitor implements ConfigPackageTree.Visitor<String> {
+class GuiceModuleFileWriterVisitor implements ConfigPackageTree.Visitor<String> {
 
   private final Messager messager;
   private final Function<String, Writer> writerFunction;
 
-  DaggerModuleFileWriterVisitor(Messager messager, Function<String, Writer> writerFunction) {
+  GuiceModuleFileWriterVisitor(Messager messager, Function<String, Writer> writerFunction) {
     this.messager = messager;
     this.writerFunction = writerFunction;
   }
@@ -38,12 +36,15 @@ class DaggerModuleFileWriterVisitor implements ConfigPackageTree.Visitor<String>
       return childOutputs;
     }
 
+    List<String> orderedChildPackages = Lists.newArrayList(childOutputs);
+    Collections.sort(orderedChildPackages);
     List<ConfigMetadata> orderedConfigs = Lists.newArrayList(configs);
     Collections.sort(orderedConfigs);
 
     try {
-      Writer writer = writerFunction.apply(PackageNameUtil.append(packageName, "ConfigDaggerModule"));
-      writeClassOpening(writer, packageName, childOutputs);
+      Writer writer = writerFunction.apply(PackageNameUtil.append(packageName, "ConfigGuiceModule"));
+      writeClassOpening(writer, packageName);
+      writeConfigureMethod(writer, orderedChildPackages, orderedConfigs);
       for (ConfigMetadata config : orderedConfigs) {
         writeConfigSupplierBinding(writer, config);
         writeConfigValueBinding(writer, config);
@@ -59,7 +60,7 @@ class DaggerModuleFileWriterVisitor implements ConfigPackageTree.Visitor<String>
     return ImmutableSet.of(packageName);
   }
 
-  private void writeClassOpening(Writer writer, String packageName, Set<String> childPackages) throws IOException {
+  private void writeClassOpening(Writer writer, String packageName) throws IOException {
     writeLine(writer, "package %s;", packageName);
     writeLine(writer, "");
     writeLine(writer, "import com.bdl.config.ConfigDescription;");
@@ -68,33 +69,40 @@ class DaggerModuleFileWriterVisitor implements ConfigPackageTree.Visitor<String>
     writeLine(writer, "import com.bdl.config.ConfigValue;");
     writeLine(writer, "import com.bdl.config.Configuration;");
     writeLine(writer, "");
-    writeLine(writer, "import dagger.Module;");
-    writeLine(writer, "import dagger.Provides;");
-    writeLine(writer, "import dagger.multibindings.IntoSet;");
+    writeLine(writer, "import com.google.inject.AbstractModule;");
+    writeLine(writer, "import com.google.inject.Provides;");
+    writeLine(writer, "import com.google.inject.multibindings.Multibinder;");
     writeLine(writer, "");
-    writeLine(writer, "/** Dagger module for binding configs in the %s package. */", packageName);
+    writeLine(writer, "/** Guice module for binding configs in the %s package. */", packageName);
 
-    if (childPackages.isEmpty()) {
-      writeLine(writer, "@Module");
-    } else {
-      writeLine(writer, "@Module(includes = {%s})", Joiner.on(", ").join(
-          Iterables.transform(childPackages, new Function<String, String>() {
-            @Override
-            public String apply(String input) {
-              return String.format("%s.ConfigDaggerModule", input);
-            }
-          })));
+    writeLine(writer, "public class ConfigGuiceModule extends AbstractModule {");
+  }
+
+  private void writeConfigureMethod(Writer writer, Iterable<String> childPackages, Iterable<ConfigMetadata> configs)
+      throws IOException {
+    writeLine(writer, "");
+    writeLine(writer, "  @Override");
+    writeLine(writer, "  protected void configure() {");
+    boolean needsNewLine = false;
+    for (String childPackage : childPackages) {
+      needsNewLine = true;
+      writeLine(writer, "    install(new %s.ConfigGuiceModule());", childPackage);
     }
-    writeLine(writer, "public class ConfigDaggerModule {");
+    if (needsNewLine) {
+      writeLine(writer, "");
+    }
+    writeLine(writer, "    Multibinder<ConfigSupplier> supplierBinder = Multibinder.newSetBinder(binder(), ConfigSupplier.class);");
+    for (ConfigMetadata config : configs) {
+      writeLine(writer, "    bindConfigSupplier_%s(supplierBinder);", config.name());
+    }
+    writeLine(writer, "  }");
   }
 
   private void writeConfigSupplierBinding(Writer writer, ConfigMetadata config) throws IOException {
     writeLine(writer, "");
-    writeLine(writer, "  /** Adds a ConfigSupplier for config %s (%s) to the set multibinder. */",
+    writeLine(writer, "  /** Binds a ConfigSupplier for config %s (%s) to the set multibinder. */",
         config.name(), config.fullyQualifiedPathName());
-    writeLine(writer, "  @Provides");
-    writeLine(writer, "  @IntoSet");
-    writeLine(writer, "  public static ConfigSupplier provideConfigSupplier_%s() {", config.name());
+    writeLine(writer, "  private void bindConfigSupplier_%s(Multibinder<ConfigSupplier> binder) {", config.name());
     writeLine(writer, "    ConfigDescription description = ConfigDescription.builder()");
     writeLine(writer, "        .packageName(\"%s\")", config.packageName());
     writeLine(writer, "        .className(\"%s\")", config.className());
@@ -107,13 +115,15 @@ class DaggerModuleFileWriterVisitor implements ConfigPackageTree.Visitor<String>
       writeLine(writer, "        .description(\"%s\")", config.description());
     }
     writeLine(writer, "        .build();");
+    writeLine(writer, "    binder.addBinding().toInstance(");
+
 
     if (config.visibility() == ConfigMetadata.Visibility.PRIVATE) {
       // Must use a reflective supplier
-      writeLine(writer, "    return ConfigSupplier.reflective(description);");
+      writeLine(writer, "        ConfigSupplier.reflective(description));");
     } else {
       // Either public or protected/package-local and we are in the same package, so direct access ok.
-      writeLine(writer, "    return ConfigSupplier.simple(description, %s);", config.fullyQualifiedPathName());
+      writeLine(writer, "        ConfigSupplier.simple(description, %s));", config.fullyQualifiedPathName());
     }
     writeLine(writer, "  }");
   }
@@ -129,7 +139,7 @@ class DaggerModuleFileWriterVisitor implements ConfigPackageTree.Visitor<String>
       writeLine(writer, "  @ConfigValue(\"%s\")", config.name());
     }
 
-    writeLine(writer, "  public static %s provideConfigValue_%s(Configuration configuration) {",
+    writeLine(writer, "  %s provideConfigValue_%s(Configuration configuration) {",
         config.type(), config.name());
     writeLine(writer, "    try {");
     writeLine(writer, "      return (%s) configuration.get(\"%s\");",

@@ -120,9 +120,10 @@ class DaggerModuleFileWriterVisitor implements ConfigPackageTree.Visitor<String>
 
   private void writeConfigValueBinding(Writer writer, ConfigMetadata config) throws IOException {
     writeLine(writer, "");
-    writeLine(writer, "  /** Binds the type of the config with a ConfigValue annotation to the Configurable's value. */");
-    writeLine(writer, "  @Provides");
     Optional<String> qualifier = config.qualifier();
+    writeLine(writer, "  /** Binds the type of the config with a %s annotation to the Configurable's value. */",
+        qualifier.isPresent() ? simpleQualifierName(qualifier.get()) : "ConfigValue");
+    writeLine(writer, "  @Provides");
     if (qualifier.isPresent()) {
       writeLine(writer, "  %s", qualifier.get());
     } else {
@@ -138,6 +139,12 @@ class DaggerModuleFileWriterVisitor implements ConfigPackageTree.Visitor<String>
     writeLine(writer, "      throw ex.wrap();");
     writeLine(writer, "    }");
     writeLine(writer, "  }");
+  }
+
+  private String simpleQualifierName(String fullName) {
+    int lastDot = fullName.lastIndexOf('.');
+    int openParen = fullName.indexOf('(');
+    return fullName.substring(lastDot + 1, openParen);
   }
 
   private void writeClassClosing(Writer writer) throws IOException {

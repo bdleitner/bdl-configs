@@ -75,7 +75,7 @@ public class ConfigDaggerModule {
     return ConfigSupplier.simple(description, com.bdl.config.things.Thing2.flag2);
   }
 
-  /** Binds the type of the config with a ConfigValue annotation to the Configurable's value. */
+  /** Binds the type of the config with a DummyQualifier annotation to the Configurable's value. */
   @Provides
   @com.bdl.config.annotation.processor.Annotations.DummyQualifier("flag2")
   public static java.lang.String provideConfigValue_flag2(Configuration configuration) {

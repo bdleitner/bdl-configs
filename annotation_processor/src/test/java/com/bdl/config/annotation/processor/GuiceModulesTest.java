@@ -73,7 +73,7 @@ public class GuiceModulesTest {
             .fieldName("flag2")
             .type("java.lang.String")
             .visibility(ConfigMetadata.Visibility.PUBLIC)
-            .qualifier(Annotations.qualifier("flag2").toString())
+            .bindingAnnotation(Annotations.bindingAnnotation("flag2").toString())
             .build());
     tree.addConfig(
         DO_NOTHING_MESSAGER,
@@ -101,7 +101,7 @@ public class GuiceModulesTest {
             .fieldName("otherFlag3")
             .type("java.lang.String")
             .visibility(ConfigMetadata.Visibility.PACKAGE)
-            .qualifier(Annotations.qualifier("").toString())
+            .bindingAnnotation(Annotations.bindingAnnotation("").toString())
             .build());
 
     tree.pullPublicAndPrivateConfigsUp();

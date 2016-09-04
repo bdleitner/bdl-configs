@@ -130,11 +130,12 @@ class GuiceModuleFileWriterVisitor implements ConfigPackageTree.Visitor<String> 
 
   private void writeConfigValueBinding(Writer writer, ConfigMetadata config) throws IOException {
     writeLine(writer, "");
-    writeLine(writer, "  /** Binds the type of the config with a ConfigValue annotation to the Configurable's value. */");
+    Optional<String> bindingAnnotation = config.bindingAnnotation();
+    writeLine(writer, "  /** Binds the type of the config with a %s annotation to the Configurable's value. */",
+        bindingAnnotation.isPresent() ? simpleAnnotationName(bindingAnnotation.get()) : "ConfigValue");
     writeLine(writer, "  @Provides");
-    Optional<String> qualifier = config.qualifier();
-    if (qualifier.isPresent()) {
-      writeLine(writer, "  %s", qualifier.get());
+    if (bindingAnnotation.isPresent()) {
+      writeLine(writer, "  %s", bindingAnnotation.get());
     } else {
       writeLine(writer, "  @ConfigValue(\"%s\")", config.name());
     }
@@ -148,6 +149,12 @@ class GuiceModuleFileWriterVisitor implements ConfigPackageTree.Visitor<String> 
     writeLine(writer, "      throw ex.wrap();");
     writeLine(writer, "    }");
     writeLine(writer, "  }");
+  }
+
+  private String simpleAnnotationName(String fullName) {
+    int lastDot = fullName.lastIndexOf('.');
+    int openParen = fullName.indexOf('(');
+    return fullName.substring(lastDot + 1, openParen);
   }
 
   private void writeClassClosing(Writer writer) throws IOException {

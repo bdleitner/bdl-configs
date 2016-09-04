@@ -27,7 +27,7 @@ public class ConfigDaggerModule {
     return ConfigSupplier.simple(description, com.bdl.config.others.OtherThingA.otherFlag3);
   }
 
-  /** Binds the type of the config with a ConfigValue annotation to the Configurable's value. */
+  /** Binds the type of the config with a DummyQualifier annotation to the Configurable's value. */
   @Provides
   @com.bdl.config.annotation.processor.Annotations.DummyQualifier("")
   public static java.lang.String provideConfigValue_otherFlag3(Configuration configuration) {

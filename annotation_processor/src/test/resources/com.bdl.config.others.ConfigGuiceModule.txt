@@ -31,9 +31,9 @@ public class ConfigGuiceModule extends AbstractModule {
         ConfigSupplier.simple(description, com.bdl.config.others.OtherThingA.otherFlag3));
   }
 
-  /** Binds the type of the config with a ConfigValue annotation to the Configurable's value. */
+  /** Binds the type of the config with a DummyBindingAnnotation annotation to the Configurable's value. */
   @Provides
-  @com.bdl.config.annotation.processor.Annotations.DummyQualifier("")
+  @com.bdl.config.annotation.processor.Annotations.DummyBindingAnnotation("")
   java.lang.String provideConfigValue_otherFlag3(Configuration configuration) {
     try {
       return (java.lang.String) configuration.get("com.bdl.config.others.OtherThingA.otherFlag3");

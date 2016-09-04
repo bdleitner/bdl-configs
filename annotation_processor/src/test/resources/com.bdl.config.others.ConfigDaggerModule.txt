@@ -29,6 +29,6 @@ public class ConfigDaggerModule {
   @Provides
   @com.bdl.config.annotation.processor.Annotations.DummyQualifier("")
   public static java.lang.String provideConfigValue_otherFlag3(Configuration configuration) {
-    return configuration.get("com.bdl.config.others.OtherThingA.otherFlag3");
+    return (java.lang.String) configuration.get("com.bdl.config.others.OtherThingA.otherFlag3");
   }
 }

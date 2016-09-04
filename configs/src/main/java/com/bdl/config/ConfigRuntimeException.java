@@ -22,6 +22,11 @@ public class ConfigRuntimeException extends RuntimeException {
     super(message, ex);
   }
 
+  /** Converts a ConfigException to a Runtime exception. */
+  public ConfigRuntimeException(ConfigException ex) {
+    super(ex.getMessage(), ex);
+  }
+
   /**
    * An exception that is thrown if the string value cannot be parsed to give a valid value for the
    * config.

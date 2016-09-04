@@ -133,7 +133,8 @@ class DaggerModuleFile {
 
     writeLine(writer, "  public static %s provideConfigValue_%s(Configuration configuration) {",
         config.type(), config.name());
-    writeLine(writer, "    return configuration.get(\"%s\");", config.fullyQualifiedPathName());
+    writeLine(writer, "    return (%s) configuration.get(\"%s\");",
+        config.type(), config.fullyQualifiedPathName());
     writeLine(writer, "  }");
   }
 

@@ -17,6 +17,12 @@ import java.io.Writer;
 import java.net.URL;
 import java.util.Map;
 
+import javax.annotation.processing.Messager;
+import javax.lang.model.element.AnnotationMirror;
+import javax.lang.model.element.AnnotationValue;
+import javax.lang.model.element.Element;
+import javax.tools.Diagnostic;
+
 /**
  * Tests for the combined functionality of {@link ConfigPackageTree} and {@link DaggerModuleFile}.
  *
@@ -25,10 +31,33 @@ import java.util.Map;
 @RunWith(JUnit4.class)
 public class DaggerModulesTest {
 
+  private static final Messager DO_NOTHING_MESSAGER = new Messager() {
+    @Override
+    public void printMessage(Diagnostic.Kind kind, CharSequence msg) {
+
+    }
+
+    @Override
+    public void printMessage(Diagnostic.Kind kind, CharSequence msg, Element e) {
+
+    }
+
+    @Override
+    public void printMessage(Diagnostic.Kind kind, CharSequence msg, Element e, AnnotationMirror a) {
+
+    }
+
+    @Override
+    public void printMessage(Diagnostic.Kind kind, CharSequence msg, Element e, AnnotationMirror a, AnnotationValue v) {
+
+    }
+  };
+
   @Test
   public void testDaggerModuleOutput() throws IOException {
     ConfigPackageTree tree = new ConfigPackageTree();
     tree.addConfig(
+        DO_NOTHING_MESSAGER,
         ConfigMetadata.builder()
             .className("Thing1")
             .packageName("com.bdl.config.things")
@@ -37,6 +66,7 @@ public class DaggerModulesTest {
             .visibility(ConfigMetadata.Visibility.PACKAGE)
             .build());
     tree.addConfig(
+        DO_NOTHING_MESSAGER,
         ConfigMetadata.builder()
             .className("Thing2")
             .packageName("com.bdl.config.things")
@@ -46,6 +76,7 @@ public class DaggerModulesTest {
             .qualifier(Annotations.qualifier("flag2").toString())
             .build());
     tree.addConfig(
+        DO_NOTHING_MESSAGER,
         ConfigMetadata.builder()
             .className("OtherThingA")
             .packageName("com.bdl.config.others")
@@ -54,6 +85,7 @@ public class DaggerModulesTest {
             .visibility(ConfigMetadata.Visibility.PUBLIC)
             .build());
     tree.addConfig(
+        DO_NOTHING_MESSAGER,
         ConfigMetadata.builder()
             .className("OtherThingA")
             .packageName("com.bdl.config.others")
@@ -62,6 +94,7 @@ public class DaggerModulesTest {
             .visibility(ConfigMetadata.Visibility.PRIVATE)
             .build());
     tree.addConfig(
+        DO_NOTHING_MESSAGER,
         ConfigMetadata.builder()
             .className("OtherThingA")
             .packageName("com.bdl.config.others")
@@ -71,7 +104,7 @@ public class DaggerModulesTest {
             .qualifier(Annotations.qualifier("").toString())
             .build());
 
-    tree.pushPublicAndPrivateConfigsDown();
+    tree.pullPublicAndPrivateConfigsUp();
 
     DaggerModuleFile rootFile = tree.toModuleFile();
 

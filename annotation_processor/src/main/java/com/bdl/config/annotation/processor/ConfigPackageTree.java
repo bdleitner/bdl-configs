@@ -5,8 +5,12 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
+
+import javax.annotation.processing.Messager;
+import javax.tools.Diagnostic;
 
 /**
  * A class to hold the found configurable metadata in a tree structure.
@@ -21,12 +25,21 @@ class ConfigPackageTree {
     this.root = new Node("");
   }
 
-  void addConfig(ConfigMetadata config) {
-    root.addConfig(config);
+  void addConfig(Messager messager, ConfigMetadata config) {
+    root.addConfigToPackage(messager, config.packageName() + ".", config);
   }
 
-  void pushPublicAndPrivateConfigsDown() {
-    root.pushConfigsDown();
+  void pullPublicAndPrivateConfigsUp() {
+    Node node = getCommonNode();
+    node.moveNonPackageConfigsTo(node);
+  }
+
+  private Node getCommonNode() {
+    Node common = root;
+    while (common.children.size() == 1) {
+      common = Iterables.getOnlyElement(common.children.values());
+    }
+    return common;
   }
 
   DaggerModuleFile toModuleFile() {
@@ -53,41 +66,47 @@ class ConfigPackageTree {
       return child;
     }
 
-    private void addConfig(ConfigMetadata config) {
-      if (config.visibility() == ConfigMetadata.Visibility.PUBLIC
-          || config.visibility() == ConfigMetadata.Visibility.PRIVATE) {
-        configs.add(config);
-        return;
-      }
-      addConfigToPackage(config.packageName() + ".", config);
-    }
-
-    private void addConfigToPackage(String packageName, ConfigMetadata config) {
+    private void addConfigToPackage(Messager messager, String packageName, ConfigMetadata config) {
       if (packageName.isEmpty()) {
+        messager.printMessage(Diagnostic.Kind.NOTE,
+            String.format("Adding %s config %s to package %s.",
+                config.visibility(), config.fullyQualifiedPathName(), packagePart));
         configs.add(config);
         return;
       }
       String[] parts = packageName.split("\\.", 2);
-      getChild(parts[0]).addConfigToPackage(parts[1], config);
+      getChild(parts[0]).addConfigToPackage(messager, parts[1], config);
     }
 
-    private void pushConfigsDown() {
-      for (ConfigMetadata config : configs) {
-        if (config.visibility() == ConfigMetadata.Visibility.PACKAGE) {
-          // we have a package-private config, no more pushing allowed.
-          return;
+    /**
+     * Moves any public or private configs from {@code this} node to the given node.
+     *
+     * @return {@code true} if there are no more configs after the move, indicating that
+     * this node can be removed from its parent.
+     */
+    private boolean moveNonPackageConfigsTo(Node node) {
+      Set<String> childrenToRemove = Sets.newHashSet();
+      for (Map.Entry<String, Node> entry : children.entrySet()) {
+        if (entry.getValue().moveNonPackageConfigsTo(node)) {
+          childrenToRemove.add(entry.getKey());
         }
       }
-      // Ok, if we get here, everything is public or private.
-      if (children.size() != 1) {
-        // No ambiguous place to push, so no more pushing allowed.
-        return;
+      for (String key : childrenToRemove) {
+        children.remove(key);
       }
-      // Ok, push everything one level and repeat.
-      Node node = Iterables.getOnlyElement(children.values());
-      node.configs.addAll(this.configs);
-      this.configs.clear();
-      node.pushConfigsDown();
+      if (this == node) {
+        return false;
+      }
+      for (Iterator<ConfigMetadata> it = configs.iterator(); it.hasNext();) {
+        ConfigMetadata config = it.next();
+        if (config.visibility() == ConfigMetadata.Visibility.PUBLIC
+            || config.visibility() == ConfigMetadata.Visibility.PRIVATE) {
+          node.configs.add(config);
+          it.remove();
+        }
+      }
+
+      return configs.isEmpty();
     }
 
     DaggerModuleFile toModuleFile(String prefix) {

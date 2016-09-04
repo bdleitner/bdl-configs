@@ -55,9 +55,9 @@ public class ConfigAnnotationProcessor extends AbstractProcessor {
 
     ConfigPackageTree tree = new ConfigPackageTree();
     for (ConfigMetadata config : foundConfigs) {
-      tree.addConfig(config);
+      tree.addConfig(messager, config);
     }
-    tree.pushPublicAndPrivateConfigsDown();
+    tree.pullPublicAndPrivateConfigsUp();
 
     DaggerModuleFile rootModuleFile = tree.toModuleFile();
     try {

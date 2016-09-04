@@ -1,5 +1,5 @@
 # Config
-*Configuration classes with Dependency Injection for Java* \
+*Configuration classes with Dependency Injection for Java*  
 **Benjamin Leitner**
 
 ### Configurables

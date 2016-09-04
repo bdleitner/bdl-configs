@@ -1,5 +1,6 @@
 package com.bdl.config.others;
 
+import com.bdl.config.Configuration;
 import com.bdl.config.ConfigDescription;
 import com.bdl.config.ConfigSupplier;
 import com.bdl.config.ConfigValue;

@@ -1,12 +1,18 @@
 package com.bdl.config.annotation.processor;
 
+import com.google.common.base.Function;
+
 import com.bdl.config.Config;
 
+import java.io.IOException;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import javax.annotation.processing.AbstractProcessor;
+import javax.annotation.processing.Messager;
+import javax.annotation.processing.ProcessingEnvironment;
 import javax.annotation.processing.RoundEnvironment;
 import javax.annotation.processing.SupportedAnnotationTypes;
 import javax.annotation.processing.SupportedSourceVersion;
@@ -14,6 +20,8 @@ import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
 import javax.lang.model.element.TypeElement;
+import javax.tools.Diagnostic;
+import javax.tools.JavaFileObject;
 
 /**
  * Annotation processor for generating Dagger Modules for Configuration.
@@ -23,6 +31,14 @@ import javax.lang.model.element.TypeElement;
 @SupportedAnnotationTypes("com.bdl.config.Config")
 @SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class ConfigAnnotationProcessor extends AbstractProcessor {
+
+  private Messager messager;
+
+  @Override
+  public synchronized void init(ProcessingEnvironment processingEnv) {
+    super.init(processingEnv);
+    messager = processingEnv.getMessager();
+  }
 
   @Override
   public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
@@ -43,23 +59,26 @@ public class ConfigAnnotationProcessor extends AbstractProcessor {
     }
     tree.pushPublicAndPrivateConfigsDown();
 
-    // TODO: Finish this.
-//    try {
-//      messager.printMessage(Diagnostic.Kind.NOTE,
-//          String.format("Found %s configs, want to write.", foundConfigs.size()));
-//      JavaFileObject jfo = processingEnv.getFiler().createSourceFile("com.bdl.ConfigDaggerModule");
-//      Writer writer = jfo.openWriter();
-//      writeClassOpening(writer);
-//      for (ConfigMetadata config : foundConfigs) {
-//        writeMethodsForConfig(writer, config);
-//      }
-//      writeClassClosing(writer);
-//      writer.close();
-//    } catch (IOException ex) {
-//      messager.printMessage(
-//          Diagnostic.Kind.ERROR,
-//          ex.getMessage());
-//    }
+    DaggerModuleFile rootModuleFile = tree.toModuleFile();
+    try {
+      messager.printMessage(Diagnostic.Kind.NOTE,
+          String.format("Found %s configs.", foundConfigs.size()));
+      rootModuleFile.write(new Function<String, Writer>() {
+        @Override
+        public Writer apply(String input) {
+          try {
+            JavaFileObject jfo = processingEnv.getFiler().createSourceFile("com.bdl.ConfigDaggerModule");
+            return jfo.openWriter();
+          } catch (IOException ex) {
+            throw new RuntimeException(ex);
+          }
+        }
+      });
+    } catch (Exception ex) {
+      messager.printMessage(
+          Diagnostic.Kind.ERROR,
+          ex.getMessage());
+    }
     return true;
   }
 }

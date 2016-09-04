@@ -71,6 +71,7 @@ class DaggerModuleFile {
   private void writeClassOpening(Writer writer) throws IOException {
     writeLine(writer, "package %s;", packageName);
     writeLine(writer, "");
+    writeLine(writer, "import com.bdl.config.Configuration;");
     writeLine(writer, "import com.bdl.config.ConfigDescription;");
     writeLine(writer, "import com.bdl.config.ConfigSupplier;");
     writeLine(writer, "import com.bdl.config.ConfigValue;");

@@ -38,6 +38,11 @@ public class MainConfigGuiceModule extends AbstractModule {
     Multibinder.newSetBinder(binder(), ConfigSupplier.class);
   }
 
+  /** Creates a new {@link MainConfigGuiceModule}. */
+  public static MainConfigGuiceModule create() {
+    return forArguments(ImmutableList.<String>of());
+  }
+
   /** Creates a new {@link MainConfigGuiceModule} using the given strings as inputs. */
   public static MainConfigGuiceModule forArguments(String... arguments) {
     return forArguments(ImmutableList.copyOf(arguments));

@@ -35,6 +35,11 @@ public class MainConfigDaggerModule {
     this.arguments = arguments;
   }
 
+  /** Creates a new {@link MainConfigDaggerModule}. */
+  public static MainConfigDaggerModule create() {
+    return forArguments(ImmutableList.<String>of());
+  }
+
   /** Creates a new {@link MainConfigDaggerModule} using the given strings as inputs. */
   public static MainConfigDaggerModule forArguments(String... arguments) {
     return forArguments(ImmutableList.copyOf(arguments));

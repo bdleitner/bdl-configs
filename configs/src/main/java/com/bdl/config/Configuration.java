@@ -99,7 +99,7 @@ public class Configuration {
 
   /** Resets all registered configurables that are not currently read-only. */
   public void resetAllWritable() {
-    for (Configurable<?> configurable : configs.getAll()) {
+    for (Configurable<?> configurable : configs.allConfigurables()) {
       if (!configurable.isReadOnly()) {
         try {
           configurable.reset();
@@ -149,5 +149,29 @@ public class Configuration {
       String name, ConfigChangeListener<T> listener, boolean listen)
       throws ConfigException {
     return ((Configurable<T>) configs.getOrThrow(name)).registerListener(listener, listen);
+  }
+
+  /** Writes config name-value pairs to the given writer. */
+  public void writeTo(ConfigObjectWriter writer) {
+    for (String key : configs.allKeys()) {
+      try {
+        writer.write(key, get(key));
+      } catch (ConfigException ex) {
+        // Should never happen, since the key comes from the ConfigMap.
+        throw ex.wrap();
+      }
+    }
+  }
+
+  /** Writes config name-value pairs to the given writer. */
+  public void writeTo(ConfigStringWriter writer) {
+    for (String key : configs.allKeys()) {
+      try {
+        writer.write(key, get(key).toString());
+      } catch (ConfigException ex) {
+        // Should never happen, since the key comes from the ConfigMap.
+        throw ex.wrap();
+      }
+    }
   }
 }

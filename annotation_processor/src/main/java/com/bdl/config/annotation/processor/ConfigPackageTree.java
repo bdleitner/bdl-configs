@@ -87,14 +87,17 @@ class ConfigPackageTree {
     /**
      * Moves any public or private configs from {@code this} node to the given node.
      *
-     * @return {@code true} if there are no more configs after the move, indicating that
+     * @return {@code true} if there are no more configs in this package or any subpackage, indicating that
      * this node can be removed from its parent.
      */
     private boolean moveNonPackageConfigsTo(Node node) {
+      boolean canRemoveMe = true;
       Set<String> childrenToRemove = Sets.newHashSet();
       for (Map.Entry<String, Node> entry : children.entrySet()) {
         if (entry.getValue().moveNonPackageConfigsTo(node)) {
           childrenToRemove.add(entry.getKey());
+        } else {
+          canRemoveMe = false;
         }
       }
       for (String key : childrenToRemove) {
@@ -112,7 +115,7 @@ class ConfigPackageTree {
         }
       }
 
-      return configs.isEmpty();
+      return canRemoveMe && configs.isEmpty();
     }
 
     private <T> Set<T> visit(Visitor<T> visitor) {

@@ -130,4 +130,58 @@ public class GuiceModulesTest {
 //          .isEqualTo(file);
     }
   }
+
+  /**
+   * Tests that a module will be written to include submodules in different subpackages even when no configs
+   * are present in the common-prefix package.
+   */
+  @Test
+  public void testWriteModulesAtJoinNodes() throws Exception {
+    ConfigPackageTree tree = new ConfigPackageTree();
+    tree.addConfig(
+        DO_NOTHING_MESSAGER,
+        ConfigMetadata.builder()
+            .packageName("com.bdl.config.alllocal.sub1")
+            .className("Local")
+            .fieldName("sub1")
+            .type("java.lang.Integer")
+            .visibility(ConfigMetadata.Visibility.PACKAGE)
+            .build());
+    tree.addConfig(
+        DO_NOTHING_MESSAGER,
+        ConfigMetadata.builder()
+            .packageName("com.bdl.config.alllocal.sub2.sub")
+            .className("Local")
+            .fieldName("sub2")
+            .type("java.lang.String")
+            .visibility(ConfigMetadata.Visibility.PACKAGE)
+            .build());
+
+    tree.pullPublicAndPrivateConfigsUp();
+
+    final Map<String, Writer> writerMap = Maps.newHashMap();
+
+    GuiceModuleFileWriterVisitor daggerVisitor = new GuiceModuleFileWriterVisitor(
+        DO_NOTHING_MESSAGER, new Function<String, Writer>() {
+      @Override
+      public Writer apply(String input) {
+        StringWriter writer = new StringWriter();
+        writerMap.put(input + ".txt", writer);
+        return writer;
+      }
+    });
+
+    tree.visit(daggerVisitor);
+    assertThat(writerMap.keySet()).containsExactly(
+        "com.bdl.config.alllocal.ConfigGuiceModule.txt",
+        "com.bdl.config.alllocal.sub1.ConfigGuiceModule.txt",
+        "com.bdl.config.alllocal.sub2.sub.ConfigGuiceModule.txt");
+
+    for (Map.Entry<String, Writer> entry : writerMap.entrySet()) {
+      URL resource = getClass().getClassLoader().getResource(entry.getKey());
+      String file = Resources.toString(resource, Charsets.UTF_8);
+
+      assertThat(entry.getValue().toString()).isEqualTo(file);
+    }
+  }
 }

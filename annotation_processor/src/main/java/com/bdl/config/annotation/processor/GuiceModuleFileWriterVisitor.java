@@ -8,6 +8,7 @@ import com.google.common.collect.Lists;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -32,7 +33,7 @@ class GuiceModuleFileWriterVisitor implements ConfigPackageTree.Visitor<String> 
 
   @Override
   public Set<String> visit(Set<String> childOutputs, String packageName, Set<ConfigMetadata> configs) {
-    if (configs.isEmpty()) {
+    if (configs.isEmpty() && childOutputs.size() < 2) {
       return childOutputs;
     }
 
@@ -78,7 +79,7 @@ class GuiceModuleFileWriterVisitor implements ConfigPackageTree.Visitor<String> 
     writeLine(writer, "public class ConfigGuiceModule extends AbstractModule {");
   }
 
-  private void writeConfigureMethod(Writer writer, Iterable<String> childPackages, Iterable<ConfigMetadata> configs)
+  private void writeConfigureMethod(Writer writer, Iterable<String> childPackages, Collection<ConfigMetadata> configs)
       throws IOException {
     writeLine(writer, "");
     writeLine(writer, "  @Override");
@@ -88,12 +89,14 @@ class GuiceModuleFileWriterVisitor implements ConfigPackageTree.Visitor<String> 
       needsNewLine = true;
       writeLine(writer, "    install(new %s.ConfigGuiceModule());", childPackage);
     }
-    if (needsNewLine) {
-      writeLine(writer, "");
-    }
-    writeLine(writer, "    Multibinder<ConfigSupplier> supplierBinder = Multibinder.newSetBinder(binder(), ConfigSupplier.class);");
-    for (ConfigMetadata config : configs) {
-      writeLine(writer, "    bindConfigSupplier_%s(supplierBinder);", config.name());
+    if (!configs.isEmpty()) {
+      if (needsNewLine) {
+        writeLine(writer, "");
+      }
+      writeLine(writer, "    Multibinder<ConfigSupplier> supplierBinder = Multibinder.newSetBinder(binder(), ConfigSupplier.class);");
+      for (ConfigMetadata config : configs) {
+        writeLine(writer, "    bindConfigSupplier_%s(supplierBinder);", config.name());
+      }
     }
     writeLine(writer, "  }");
   }

@@ -15,7 +15,7 @@ public class ConfigGuiceModule extends AbstractModule {
 
   @Override
   protected void configure() {
-    install(new com.bdl.config.allLocal.sub1.ConfigGuiceModule());
-    install(new com.bdl.config.allLocal.sub2.sub.ConfigGuiceModule());
+    install(new com.bdl.config.alllocal.sub1.ConfigGuiceModule());
+    install(new com.bdl.config.alllocal.sub2.sub.ConfigGuiceModule());
   }
 }

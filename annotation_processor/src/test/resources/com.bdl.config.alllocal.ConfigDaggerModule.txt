@@ -1,4 +1,4 @@
-package com.bdl.config.allLocal;
+package com.bdl.config.alllocal;
 
 import com.bdl.config.ConfigDescription;
 import com.bdl.config.ConfigException;
@@ -10,8 +10,7 @@ import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.IntoSet;
 
-/** Dagger module for binding configs in the com.bdl.config package. */
+/** Dagger module for binding configs in the com.bdl.config.alllocal package. */
 @Module(includes = {com.bdl.config.alllocal.sub1.ConfigDaggerModule, com.bdl.config.alllocal.sub2.sub.ConfigDaggerModule})
 public class ConfigDaggerModule {
-
 }

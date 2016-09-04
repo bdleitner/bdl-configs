@@ -10,6 +10,7 @@ import com.google.common.collect.Lists;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -34,16 +35,18 @@ class DaggerModuleFileWriterVisitor implements ConfigPackageTree.Visitor<String>
 
   @Override
   public Set<String> visit(Set<String> childOutputs, String packageName, Set<ConfigMetadata> configs) {
-    if (configs.isEmpty()) {
+    if (configs.isEmpty() && childOutputs.size() < 2) {
       return childOutputs;
     }
 
+    List<String> orderedChildPackages = Lists.newArrayList(childOutputs);
+    Collections.sort(orderedChildPackages);
     List<ConfigMetadata> orderedConfigs = Lists.newArrayList(configs);
     Collections.sort(orderedConfigs);
 
     try {
       Writer writer = writerFunction.apply(PackageNameUtil.append(packageName, "ConfigDaggerModule"));
-      writeClassOpening(writer, packageName, childOutputs);
+      writeClassOpening(writer, packageName, orderedChildPackages);
       for (ConfigMetadata config : orderedConfigs) {
         writeConfigSupplierBinding(writer, config);
         writeConfigValueBinding(writer, config);
@@ -59,7 +62,7 @@ class DaggerModuleFileWriterVisitor implements ConfigPackageTree.Visitor<String>
     return ImmutableSet.of(packageName);
   }
 
-  private void writeClassOpening(Writer writer, String packageName, Set<String> childPackages) throws IOException {
+  private void writeClassOpening(Writer writer, String packageName, Collection<String> childPackages) throws IOException {
     writeLine(writer, "package %s;", packageName);
     writeLine(writer, "");
     writeLine(writer, "import com.bdl.config.ConfigDescription;");

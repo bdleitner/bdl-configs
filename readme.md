@@ -19,7 +19,7 @@ its type:
 Configurables can also be made writable only until they are read, for
 use as Flags.  To do this, use:
 
-    // A Configurable<String> with default value "some_string"*[]: 
+    // A Configurable<String> with default value "some_string" 
     // After reading the value, attempting to set it will throw an exception.
     // Setting the value to something else prior to calling get() is allowed.
     Configurable.flag("some_string");
@@ -36,6 +36,20 @@ provided so the Configurable can translate new string values into objects.
         .withParser(myClassParser) // A com.google.common.base.Function<String, MyClass>
         .build();
 
+You can also register listeners on Configurables to be updated on changes made elsewhere:
+
+    ListenerRegistration configurable.registerListener(new ConfigChangeListener<[T]>() {
+      void onConfigurationChange(T newValue) {
+        // I care about this change, I should really do something.
+      }
+    }
+    
+where `T` should be replaced by the configurable's type.  The `ListenerRegistration` is a handle
+that allows for unregistering the listener if you later do not want to listen anymore.  If you want
+the listener to get an immediate update with the current value upon registration, call:
+
+    configurable.registerListener(listener, true /* Tell the listener right now what the value is. */);
+
 ### Dependency Injection
 -----
 The real magic comes into play when using Configurables with Dependency Injection. Adding the
@@ -47,6 +61,9 @@ How the `@Config`-marked Configurables are grouped into modules depends on their
 public and private `@Config` fields are pulled up into a root Module class in the lowest package
 that includes all subpackages with at least one `@Config`-marked Configurable.  Package-local fields
 are included in modules in the same package, and these modules are linked to the root module.
+
+Reflection is used for building the bindings to private Configurables.  If you wish to avoid the
+ costs of reflection, make sure your Configurables have at least package-local visibility.
 
 The annotation processor will write one or more modules, with a Root module appearing in the highest
 level package that contains all `@Config`-marked configurables itself or in subpackages.
@@ -75,8 +92,6 @@ To use *Guice* for dependency injection, include in your `Injector` creation bot
       injector.getInstance(...);
     }
 
-
-    
 You can then include `@ConfigValue([name])`-annotated parameters in your constructors and they will
 be filled appropriately.
 
@@ -134,3 +149,9 @@ the value to `true` and `--no[config_name]` will set it to `false`.
   * `system_config` - the value is a comma-separated list of names of System Properties from which
   to read values.
  
+ ## Configuration
+ If using injection, a `@Singleton Configuration` class becomes available for injection.
+ The `Configuration` class exposes a number of methods for interacting with configurables.  It
+ allows for getting/setting configurable values by name.  It also works with the
+  `ConfigObjectWriter` and `ConfigStringWriter` classes to support exporting all current config
+  information (e.g. for persistence elsewhere).

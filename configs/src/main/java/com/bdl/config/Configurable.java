@@ -88,11 +88,11 @@ public final class Configurable<T> {
   }
 
   private T checkValue(T value) throws InvalidConfigValueException {
-    if (value == null || !type.equals(value.getClass())) {
+    if (value != null && !type.equals(value.getClass())) {
       throw new TypeMismatchException(this.value, value).wrap();
     }
     if (!predicate.apply(value)) {
-      throw new InvalidConfigValueException(value.toString());
+      throw new InvalidConfigValueException(value == null ? "<null>" : value.toString());
     }
     return value;
   }
@@ -173,7 +173,7 @@ public final class Configurable<T> {
    */
   @Override
   public String toString() {
-    return value == null ? null : value.toString();
+    return value == null ? "null" : value.toString();
   }
 
   /** Creates a new Configurable with the default value. */

@@ -119,7 +119,7 @@ abstract class ExternalConfigLoader {
 
     @Override
     protected BufferedReader getReader(String resource) throws Exception {
-      InputStream resourceStream = Configuration.class.getResourceAsStream(resource);
+      InputStream resourceStream = Configuration.class.getClassLoader().getResourceAsStream(resource);
       if (resourceStream == null) {
         // Couldn't find the resource with this class's ClassLoader, so
         // try this thread's ContextClassLoader (if it was set).

@@ -9,6 +9,11 @@ import com.google.common.base.Joiner;
  */
 public class ConfigException extends Exception {
 
+  /** Interface for exceptions that can have a config name set on them. */
+  interface ConfigNameSettable {
+    ConfigException withConfigName(String name);
+  }
+
   /** For serialization, derived by casting the start of the class name into numbers */
   private static final long serialVersionUID = 6121752435L;
 
@@ -20,6 +25,11 @@ public class ConfigException extends Exception {
   /** Creates a new {@link ConfigException} with the given message and cause */
   public ConfigException(String message, Throwable cause) {
     super(message, cause);
+  }
+
+  /** Wraps this exception in a {@link ConfigRuntimeException}. */
+  public ConfigRuntimeException wrap() {
+    return new ConfigRuntimeException(this);
   }
 
   /** An exception thrown when a config is not recognized */
@@ -41,7 +51,11 @@ public class ConfigException extends Exception {
     private static final long serialVersionUID = 52420518141126121L;
 
     public ExternalConfigLoadException(String arg) {
-      super(arg, null);
+      super(arg);
+    }
+
+    public ExternalConfigLoadException(String arg, Throwable cause) {
+      super(arg, cause);
     }
 
   }
@@ -57,5 +71,96 @@ public class ConfigException extends Exception {
     }
   }
 
+  /**
+   * An exception that is thrown if the string value cannot be parsed to give a valid value for the
+   * config.
+   */
+  public static class InvalidConfigValueException extends ConfigException implements ConfigNameSettable {
 
+    /** For serialization, derived by casting the start of the class name into numbers. */
+    private static final long serialVersionUID = 914221129461217221L;
+
+    private final String value;
+    private final String configName;
+
+    public InvalidConfigValueException(String value) {
+      this(null, value);
+    }
+
+    public InvalidConfigValueException(String configName, String value) {
+      super(null);
+      this.configName = configName;
+      this.value = value;
+    }
+
+    @Override
+    public ConfigException withConfigName(String name) {
+      return new InvalidConfigValueException(name, value);
+    }
+
+    @Override
+    public String getMessage() {
+      if (configName == null) {
+        return String.format("The value \"%s\" is not valid", value);
+      }
+      return String.format("The value \"%s\" is not valid for config \"%s\"", value, configName);
+    }
+  }
+
+  /** An exception that is thrown if the config cannot be set. */
+  public static class IllegalConfigStateException extends ConfigException implements ConfigNameSettable {
+
+    /** For serialization, derived by casting the start of the class name into numbers. */
+    private static final long serialVersionUID = 9121257112612171920L;
+
+    private final String configName;
+
+    public IllegalConfigStateException() {
+      this(null);
+    }
+
+    public IllegalConfigStateException(String configName) {
+      super(null);
+      this.configName = configName;
+    }
+
+    @Override
+    public ConfigException withConfigName(String name) {
+      return new IllegalConfigStateException(name);
+    }
+
+    @Override
+    public String getMessage() {
+      if (configName == null) {
+        return "Attempted to set the value of a config after it was read.";
+      }
+      return String.format("Attempted to set the value of the config %s after it was read.", configName);
+    }
+  }
+
+  /** An exception thrown when a requested config cannot be uniquely determined */
+  public static class AmbiguousConfigException extends ConfigException {
+
+    /** For serialization, derived by casting the start of the class name into numbers */
+    private static final long serialVersionUID = 11329721152119L;
+
+    public AmbiguousConfigException(String name, Iterable<String> fullNames) {
+      super(String.format(
+          "Ambiguous config name \"%s\" matches configs: %s.  Try using the fully qualified name.",
+          name,
+          Joiner.on(", ").join(fullNames)));
+    }
+  }
+
+  /**
+   * An exception thrown when an attempt is made to update a {@link Configurable} to an incompatible
+   * value.
+   */
+  public static class ConfigTypeMismatchException extends ConfigException {
+
+    public ConfigTypeMismatchException(Object oldValue, Object newValue) {
+      super(String.format("Attempted to set configurable to incompatible value %s (was %s).",
+          newValue, oldValue));
+    }
+  }
 }

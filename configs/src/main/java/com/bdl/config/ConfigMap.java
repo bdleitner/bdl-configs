@@ -6,8 +6,8 @@ import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 
+import com.bdl.config.ConfigException.AmbiguousConfigException;
 import com.bdl.config.ConfigException.UnrecognizedConfigException;
-import com.bdl.config.ConfigRuntimeException.AmbiguousConfigException;
 
 import java.util.Collection;
 import java.util.Map;
@@ -30,9 +30,7 @@ class ConfigMap {
   Configurable<?> getOrThrow(String key) {
     Configurable<?> config = getOrNull(key);
     if (config == null) {
-      throw new ConfigRuntimeException(
-          String.format("No config found for name %s", key),
-          new UnrecognizedConfigException(key));
+      throw new UnrecognizedConfigException(key).wrap();
     }
     return config;
   }
@@ -43,7 +41,7 @@ class ConfigMap {
       return configs.get(Iterables.getOnlyElement(fullNames));
     }
     if (fullNames != null && fullNames.size() > 1) {
-      throw new AmbiguousConfigException(key, fullNames);
+      throw new AmbiguousConfigException(key, fullNames).wrap();
     }
     // null or empty.
     return configs.get(key);

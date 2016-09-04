@@ -1,13 +1,16 @@
 package com.bdl.config;
 
+import static com.google.common.truth.Truth.assertThat;
+
 import com.google.common.base.Predicate;
+
+import com.bdl.config.ConfigException.InvalidConfigValueException;
+
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import static com.google.common.truth.Truth.assertThat;
 
 /**
  * @author Benjamin Leitner
@@ -21,28 +24,28 @@ public class ConfigurationTest {
   }
 
   @Test
-  public void testConfigBuilder_simpleString() {
+  public void testConfigBuilder_simpleString() throws Exception {
     Configurable<String> configurable = Configurable.value("foo");
     configurable.setValue("bar");
     assertThat(configurable.get()).isEqualTo("bar");
   }
 
   @Test
-  public void testConfigBuilder_simpleInteger() {
+  public void testConfigBuilder_simpleInteger() throws Exception {
     Configurable<Integer> configurable = Configurable.value(2);
     configurable.setFromString("25");
     assertThat(configurable.get()).isEqualTo(25);
   }
 
   @Test
-  public void testConfigBuilder_simpleLong() {
+  public void testConfigBuilder_simpleLong() throws Exception {
     Configurable<Long> configurable = Configurable.value(2L);
     configurable.setFromString("25");
     assertThat(configurable.get()).isEqualTo(25L);
   }
 
   @Test
-  public void testConfigBuilder_simpleBoolean() {
+  public void testConfigBuilder_simpleBoolean() throws Exception {
     Configurable<Boolean> configurable = Configurable.noDefault(Boolean.class);
     Configuration.disableConfigSetCheck();
     configurable.setFromString("yes");
@@ -52,7 +55,7 @@ public class ConfigurationTest {
   }
 
   @Test
-  public void testConfigBuilder_simpleBooleanParsing() {
+  public void testConfigBuilder_simpleBooleanParsing() throws Exception {
     Configuration.disableConfigSetCheck();
     Configurable<Boolean> configurable = Configurable.value(true);
     assertThat(configurable.get()).isTrue();
@@ -61,7 +64,7 @@ public class ConfigurationTest {
   }
 
   @Test
-  public void testConfigBuilder_simpleClass() {
+  public void testConfigBuilder_simpleClass() throws Exception {
     Configurable<Class> configurable = Configurable.value(Class.class, Boolean.class);
     Configuration.disableConfigSetCheck();
     configurable.setFromString(getClass().getName());
@@ -82,8 +85,9 @@ public class ConfigurationTest {
     try {
       configurable.setFromString("-25");
       Assert.fail();
-    } catch (ConfigRuntimeException.InvalidConfigValueException e) {
+    } catch (ConfigException ex) {
       // expected
+      assertThat(ex).isInstanceOf(InvalidConfigValueException.class);
     }
   }
 }

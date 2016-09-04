@@ -5,6 +5,8 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
+import com.bdl.config.ConfigException.ConfigNameSettable;
+import com.bdl.config.ConfigException.ExternalConfigLoadException;
 import com.bdl.config.ConfigException.InvalidConfigSyntaxException;
 import com.bdl.config.ConfigException.UnrecognizedConfigException;
 
@@ -76,7 +78,8 @@ class ConfigProcessor {
           try {
             addConfigsToMap(configNamesToValues, nonConfigArgs, loader.getConfigArgs(externalConfigValue));
           } catch (Exception ex) {
-            throw new ConfigRuntimeException("Unable to load configs from external source.", ex);
+            throw new ExternalConfigLoadException("Unable to load configs from external source.", ex)
+                .wrap();
           }
         }
       }
@@ -93,8 +96,7 @@ class ConfigProcessor {
   private void addConfigsToMap(
       Map<String, String> configNamesToValues,
       List<String> nonConfigArgs,
-      Iterable<String> configArgs)
-      throws ConfigRuntimeException {
+      Iterable<String> configArgs) {
     boolean noMoreConfigs = false;
 
     for (String arg : configArgs) {
@@ -110,7 +112,7 @@ class ConfigProcessor {
 
       Matcher matcher = CONFIG_PATTERN.matcher(arg);
       if (!matcher.matches()) {
-        throw new ConfigRuntimeException("Bad config argument", new InvalidConfigSyntaxException(arg));
+        throw new InvalidConfigSyntaxException(arg).wrap();
       }
       String configName = matcher.group(CONFIG_NAME_GROUP);
       String valueString = matcher.group(CONFIG_VALUE_GROUP);
@@ -131,16 +133,14 @@ class ConfigProcessor {
     }
 
     if (!unrecognizedConfigs.isEmpty()) {
-      throw new ConfigRuntimeException(
-          "Unrecognized configs",
-          new UnrecognizedConfigException(unrecognizedConfigs.toArray(new String[unrecognizedConfigs.size()])));
+      throw new UnrecognizedConfigException(
+          unrecognizedConfigs.toArray(new String[unrecognizedConfigs.size()]))
+          .wrap();
     }
   }
 
   private void processConfig(ConfigMap configMap, String configName, String valueString)
-      throws ConfigRuntimeException.InvalidConfigValueException,
-      UnrecognizedConfigException,
-      ConfigRuntimeException.AmbiguousConfigException, ConfigRuntimeException.IllegalConfigStateException {
+      throws UnrecognizedConfigException {
 
     Configurable<?> config = configMap.getOrNull(configName);
 
@@ -161,12 +161,11 @@ class ConfigProcessor {
 
     try {
       config.setFromString(valueString);
-    } catch (ConfigRuntimeException.InvalidConfigValueException ex) {
-      ex.setConfigName(configName);
-      throw ex;
-    } catch (ConfigRuntimeException.IllegalConfigStateException ex) {
-      ex.setConfigName(configName);
-      throw ex;
+    } catch (ConfigException ex) {
+      if (ex instanceof ConfigNameSettable) {
+        ex = ((ConfigNameSettable) ex).withConfigName(configName);
+      }
+      throw ex.wrap();
     }
   }
 }

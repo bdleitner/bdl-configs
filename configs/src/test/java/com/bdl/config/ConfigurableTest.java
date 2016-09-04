@@ -1,15 +1,18 @@
 package com.bdl.config;
 
-import com.bdl.config.ConfigRuntimeException.IllegalConfigStateException;
+import static com.google.common.truth.Truth.assertThat;
+import static org.junit.Assert.fail;
+
 import com.google.common.base.Predicate;
+
+import com.bdl.config.ConfigException.IllegalConfigStateException;
+import com.bdl.config.ConfigException.InvalidConfigValueException;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-
-import static com.google.common.truth.Truth.assertThat;
-import static org.junit.Assert.fail;
 
 /**
  * @author Benjamin Leitner
@@ -121,7 +124,7 @@ public class ConfigurableTest {
   }
 
   @Test
-  public void testEnumConfig() {
+  public void testEnumConfig()throws Exception {
     Configurable<TestEnum> value = Configurable.value(TestEnum.SECOND);
     value.setFromString("THIRD");
     assertThat(value.get()).isEqualTo(TestEnum.THIRD);
@@ -138,7 +141,7 @@ public class ConfigurableTest {
     try {
       configurable.setFromString("-22");
       fail();
-    } catch (ConfigRuntimeException.InvalidConfigValueException e) {
+    } catch (InvalidConfigValueException e) {
       // expected
     }
     assertThat(configurable.get()).isEqualTo(1);
@@ -149,8 +152,8 @@ public class ConfigurableTest {
     try {
       Configurable.<Integer>builder().withDefaultValue(-10).withPredicate(POSITIVE_INTEGER).build();
       fail();
-    } catch (ConfigRuntimeException.InvalidConfigValueException ex) {
-      // expected
+    } catch (ConfigRuntimeException ex) {
+      assertThat(ex.unwrap()).isInstanceOf(InvalidConfigValueException.class);
     }
   }
 }

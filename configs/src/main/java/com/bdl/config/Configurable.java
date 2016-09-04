@@ -1,18 +1,23 @@
 package com.bdl.config;
 
-import com.bdl.config.ConfigChangeListener.ListenerRegistration;
-import com.bdl.config.ConfigRuntimeException.ConfigTypeMismatchException;
-import com.google.common.base.*;
+import static com.bdl.config.ConfigException.IllegalConfigStateException;
+import static com.bdl.config.ConfigException.InvalidConfigValueException;
+
+import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
+import com.google.common.base.Predicate;
+import com.google.common.base.Predicates;
+import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 
+import com.bdl.config.ConfigChangeListener.ListenerRegistration;
+import com.bdl.config.ConfigException.ConfigTypeMismatchException;
+
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
-
-import static com.bdl.config.ConfigRuntimeException.IllegalConfigStateException;
-import static com.bdl.config.ConfigRuntimeException.InvalidConfigValueException;
 
 /**
  * A class to hold a configurable value as from a command line argument.
@@ -36,7 +41,6 @@ public final class Configurable<T> {
   protected volatile T value;
   private boolean read;
 
-
   private Configurable(
       Class<T> type,
       T defaultValue,
@@ -50,7 +54,7 @@ public final class Configurable<T> {
     value = defaultValue;
     this.lockable = lockable;
     if (!predicate.apply(value)) {
-      throw new InvalidConfigValueException(value.toString());
+      throw new InvalidConfigValueException(value.toString()).wrap();
     }
     read = false;
     listeners = Sets.newHashSet();
@@ -73,7 +77,7 @@ public final class Configurable<T> {
    *
    * @throws IllegalConfigStateException if this config has already been read
    */
-  private void checkSetState() throws ConfigRuntimeException.IllegalConfigStateException {
+  private void checkSetState() throws IllegalConfigStateException {
     if (lockable && read && !Configuration.isConfigSetCheckDisabled()) {
       throw new IllegalConfigStateException();
     }
@@ -81,7 +85,7 @@ public final class Configurable<T> {
 
   private T checkValue(T value) throws InvalidConfigValueException {
     if (value == null || !type.equals(value.getClass())) {
-      throw new ConfigTypeMismatchException(this.value, value);
+      throw new ConfigTypeMismatchException(this.value, value).wrap();
     }
     if (!predicate.apply(value)) {
       throw new InvalidConfigValueException(value.toString());
@@ -90,8 +94,7 @@ public final class Configurable<T> {
   }
 
   /** Sets this config's value from the specified string. */
-  Configurable<T> setFromString(String valueString) throws InvalidConfigValueException,
-      ConfigRuntimeException.IllegalConfigStateException {
+  Configurable<T> setFromString(String valueString) throws ConfigException {
     checkSetState();
     if (valueString == null) {
       if (Configuration.isConfigSetCheckDisabled()) {
@@ -151,7 +154,6 @@ public final class Configurable<T> {
     }
     fireOnChange();
   }
-
 
   /**
    * Alerts the listeners that a change is coming.
@@ -307,6 +309,7 @@ public final class Configurable<T> {
       if (built.size() > 1) {
         predicate = Predicates.and(built);
       }
+
 
       return new Configurable<>(clazz, defaultValue, predicate, getParser(), lockable);
     }

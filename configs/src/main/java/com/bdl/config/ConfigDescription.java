@@ -14,6 +14,7 @@ import com.google.common.base.Optional;
 @AutoValue
 public abstract class ConfigDescription {
 
+  public abstract String packageName();
   public abstract String className();
   public abstract String fieldName();
   public abstract String type();
@@ -26,7 +27,7 @@ public abstract class ConfigDescription {
   }
 
   public String fullyQualifiedName() {
-    return String.format("%s.%s", className(), fieldName());
+    return String.format("%s.%s.%s", packageName(), className(), fieldName());
   }
 
   public static Builder builder() {
@@ -35,6 +36,7 @@ public abstract class ConfigDescription {
 
   @AutoValue.Builder
   public abstract static class Builder {
+    public abstract Builder packageName(String packageName);
     public abstract Builder className(String className);
     public abstract Builder fieldName(String fieldName);
     public abstract Builder type(String type);

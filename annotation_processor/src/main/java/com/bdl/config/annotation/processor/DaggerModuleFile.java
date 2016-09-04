@@ -73,6 +73,7 @@ class DaggerModuleFile {
     writeLine(writer, "");
     writeLine(writer, "import com.bdl.config.Configuration;");
     writeLine(writer, "import com.bdl.config.ConfigDescription;");
+    writeLine(writer, "import com.bdl.config.ConfigException;");
     writeLine(writer, "import com.bdl.config.ConfigSupplier;");
     writeLine(writer, "import com.bdl.config.ConfigValue;");
     writeLine(writer, "");
@@ -99,6 +100,7 @@ class DaggerModuleFile {
     writeLine(writer, "  @IntoSet");
     writeLine(writer, "  public static ConfigSupplier provideConfigSupplier_%s() {", config.name());
     writeLine(writer, "    ConfigDescription description = ConfigDescription.builder()");
+    writeLine(writer, "        .packageName(\"%s\")", config.packageName());
     writeLine(writer, "        .className(\"%s\")", config.className());
     writeLine(writer, "        .fieldName(\"%s\")", config.fieldName());
     writeLine(writer, "        .type(\"%s\")", config.type());
@@ -133,8 +135,12 @@ class DaggerModuleFile {
 
     writeLine(writer, "  public static %s provideConfigValue_%s(Configuration configuration) {",
         config.type(), config.name());
-    writeLine(writer, "    return (%s) configuration.get(\"%s\");",
+    writeLine(writer, "    try {");
+    writeLine(writer, "      return (%s) configuration.get(\"%s\");",
         config.type(), config.fullyQualifiedPathName());
+    writeLine(writer, "    } catch (ConfigException ex) {");
+    writeLine(writer, "      throw ex.wrap();");
+    writeLine(writer, "    }");
     writeLine(writer, "  }");
   }
 

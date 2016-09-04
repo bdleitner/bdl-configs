@@ -24,14 +24,13 @@ public class ConfigAnnotationProcessorTest {
 
   @Test
   public void testConfigInjection() throws Exception {
-    // TODO: Reengineer test, probably move to annotation_processor project.
     ConfigComponent configComponent = DaggerConfigAnnotationProcessorTest_ConfigComponent.builder()
         .mainConfigDaggerModule(MainConfigDaggerModule.forArguments("--here_is_a_config=foo"))
         .build();
     Configuration configs = configComponent.getConfigs();
     assertThat(configs).isNotNull();
-//    InjectionTarget target = configComponent.getTarget();
-//    assertThat(target.configValue).isEqualTo("foo");
+    InjectionTarget target = configComponent.getTarget();
+    assertThat(target.configValue).isEqualTo("foo");
   }
 
   static class InjectionTarget {
@@ -44,11 +43,11 @@ public class ConfigAnnotationProcessorTest {
     }
   }
 
-  @Component(modules = {MainConfigDaggerModule.class})
+  @Component(modules = {MainConfigDaggerModule.class, com.bdl.config.compiler.ConfigDaggerModule.class})
   @Singleton
   interface ConfigComponent {
     Configuration getConfigs();
 
-//    InjectionTarget getTarget();
+    InjectionTarget getTarget();
   }
 }

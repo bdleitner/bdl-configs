@@ -2,6 +2,7 @@ package com.bdl.config.things;
 
 import com.bdl.config.Configuration;
 import com.bdl.config.ConfigDescription;
+import com.bdl.config.ConfigException;
 import com.bdl.config.ConfigSupplier;
 import com.bdl.config.ConfigValue;
 
@@ -18,6 +19,7 @@ public class ConfigDaggerModule {
   @IntoSet
   public static ConfigSupplier provideConfigSupplier_flag1() {
     ConfigDescription description = ConfigDescription.builder()
+        .packageName("com.bdl.config.things")
         .className("Thing1")
         .fieldName("flag1")
         .type("java.lang.String")
@@ -29,6 +31,10 @@ public class ConfigDaggerModule {
   @Provides
   @ConfigValue("flag1")
   public static java.lang.String provideConfigValue_flag1(Configuration configuration) {
-    return (java.lang.String) configuration.get("com.bdl.config.things.Thing1.flag1");
+    try {
+      return (java.lang.String) configuration.get("com.bdl.config.things.Thing1.flag1");
+    } catch (ConfigException ex) {
+      throw ex.wrap();
+    }
   }
 }

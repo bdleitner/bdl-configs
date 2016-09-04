@@ -3,6 +3,7 @@ package com.bdl.config;
 import static com.google.common.truth.Truth.assertThat;
 import static org.junit.Assert.fail;
 
+import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 
 import com.bdl.config.ConfigException.IllegalConfigStateException;
@@ -120,6 +121,25 @@ public class ConfigurableTest {
       fail();
     } catch (NumberFormatException ex) {
       // expected
+    }
+  }
+
+  @Test
+  public void testParsingError() throws Exception {
+    Configurable<String> configurable = Configurable.<String>builder()
+        .withDefaultValue("foo")
+        .withParser(new Function<String, String>() {
+          @Override
+          public String apply(String input) {
+            throw new RuntimeException("BANG!");
+          }
+        })
+        .build();
+    try {
+      configurable.setFromString("will_be_parsed");
+      fail();
+    } catch (ConfigException ex) {
+      assertThat(ex).isInstanceOf(InvalidConfigValueException.class);
     }
   }
 

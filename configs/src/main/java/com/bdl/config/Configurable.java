@@ -97,9 +97,24 @@ public final class Configurable<T> {
     return value;
   }
 
-  /** Sets this config's value from the specified string. */
+  /**
+   * Sets this config's value from the specified string.
+   *
+   * @throws ConfigException if an error occurs.
+   * <ul>
+   *   <li>{@linkplain ConfigException.IllegalConfigStateException} if the config is not writable.</li>
+   *   <li>{@linkplain ConfigException.InvalidConfigValueException} if the value could not be parsed or the parsed
+   *   value is not acceptable to the config.</li>
+   * </ul>
+   */
   T setFromString(String valueString) throws ConfigException {
-    return setValue(parser.apply(Preconditions.checkNotNull(valueString, "New config string value cannot be null.")));
+    try {
+      T result = parser.apply(Preconditions.checkNotNull(valueString, "New config string value cannot be null."));
+      return setValue(result);
+    } catch (RuntimeException ex) {
+      // A problem occurred when parsing
+      throw new InvalidConfigValueException(valueString);
+    }
   }
 
   /** Registers a listener to the configurable. */

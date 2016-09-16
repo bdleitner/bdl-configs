@@ -158,5 +158,4 @@ class DaggerModuleFileWriterVisitor implements ConfigPackageTree.Visitor<String>
     writer.write(String.format(template, params));
     writer.write("\n");
   }
-
 }

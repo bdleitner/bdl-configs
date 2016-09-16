@@ -71,11 +71,11 @@ level package that contains all `@Config`-marked configurables itself or in subp
 By default, the modules will bind the configuration value to an `@ConfigValue([name])` annotation,
 where `name` is the value given in the `@Config` annotation, if present, or the field name of the
 Configurable otherwise.  Note that these bindings must be globally unique.  To change these
-bindings, a `@Qualifer` (for *Dagger*) and/or `@BindingAnnotation` (for *Guice*) can also be placed
+bindings, a `@Qualifier` (for *Dagger*) and/or `@BindingAnnotation` (for *Guice*) can also be placed
 on the Configurable field.  If one is found, the binding is replaced in the corresponding DI module.
 That is, if a `@Qualifier` annotation is found, the binding is overridden in *Dagger*.  If a
 `@BindingAnnotation` is found, the binding is overridden in *Guice*.  These potential overrides are
-independent.  To allow for use of either, use an annotation that is both a `@Qualifer` and a
+independent.  To allow for use of either, use an annotation that is both a `@Qualifier` and a
 `@BindingAnnotation` (like `@ConfigValue`).
 
 #### Guice

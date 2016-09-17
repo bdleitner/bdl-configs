@@ -31,7 +31,7 @@ public abstract class ConfigMetadata implements Comparable<ConfigMetadata> {
   public enum Visibility {
     PRIVATE,
     PACKAGE, // Package local or protected
-    PUBLIC;
+    PUBLIC
   }
   public abstract String packageName();
   public abstract String className();
@@ -72,7 +72,7 @@ public abstract class ConfigMetadata implements Comparable<ConfigMetadata> {
     String configType = ((DeclaredType) type).getTypeArguments().get(0).toString();
     metadata.type(configType);
 
-    metadata.visibility(getVisibility(field, enclosingClass));
+    metadata.visibility(getVisibility(field));
 
     Config annotation = field.getAnnotation(Config.class);
     if (!annotation.desc().isEmpty()) {
@@ -92,7 +92,7 @@ public abstract class ConfigMetadata implements Comparable<ConfigMetadata> {
     return metadata.build();
   }
 
-  private static Visibility getVisibility(Element field, Element enclosingClass) {
+  private static Visibility getVisibility(Element field) {
     Set<Modifier> fieldModifiers = field.getModifiers();
     Set<Modifier> classModifiers = field.getModifiers();
 

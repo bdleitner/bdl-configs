@@ -1,10 +1,8 @@
 package com.bdl.config.annotation.processor;
 
 import static com.google.common.truth.Truth.assertThat;
-import static com.google.common.truth.Truth.assertWithMessage;
 
 import com.google.common.base.Charsets;
-import com.google.common.base.Function;
 import com.google.common.collect.Maps;
 import com.google.common.io.Resources;
 
@@ -110,23 +108,18 @@ public class DaggerModulesTest {
     final Map<String, Writer> writerMap = Maps.newHashMap();
 
     DaggerModuleFileWriterVisitor daggerVisitor = new DaggerModuleFileWriterVisitor(
-        DO_NOTHING_MESSAGER, new Function<String, Writer>() {
-      @Override
-      public Writer apply(String input) {
-        StringWriter writer = new StringWriter();
-        writerMap.put(input + ".txt", writer);
-        return writer;
-      }
-    });
+        DO_NOTHING_MESSAGER, input -> {
+          StringWriter writer = new StringWriter();
+          writerMap.put(input + ".txt", writer);
+          return writer;
+        });
 
     tree.visit(daggerVisitor);
     for (Map.Entry<String, Writer> entry : writerMap.entrySet()) {
       URL resource = getClass().getClassLoader().getResource(entry.getKey());
       String file = Resources.toString(resource, Charsets.UTF_8);
 
-      assertWithMessage(String.format("Mismatch in file %s", entry.getKey()))
-          .that(entry.getValue().toString())
-          .isEqualTo(file);
+      assertThat(entry.getValue().toString()).isEqualTo(file);
     }
   }
 
@@ -161,14 +154,11 @@ public class DaggerModulesTest {
     final Map<String, Writer> writerMap = Maps.newHashMap();
 
     DaggerModuleFileWriterVisitor daggerVisitor = new DaggerModuleFileWriterVisitor(
-        DO_NOTHING_MESSAGER, new Function<String, Writer>() {
-      @Override
-      public Writer apply(String input) {
-        StringWriter writer = new StringWriter();
-        writerMap.put(input + ".txt", writer);
-        return writer;
-      }
-    });
+        DO_NOTHING_MESSAGER, input -> {
+          StringWriter writer = new StringWriter();
+          writerMap.put(input + ".txt", writer);
+          return writer;
+        });
 
     tree.visit(daggerVisitor);
     assertThat(writerMap.keySet()).containsExactly(

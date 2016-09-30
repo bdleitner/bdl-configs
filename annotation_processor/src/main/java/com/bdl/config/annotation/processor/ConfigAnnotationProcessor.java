@@ -1,7 +1,5 @@
 package com.bdl.config.annotation.processor;
 
-import com.google.common.base.Function;
-
 import com.bdl.config.Config;
 
 import java.io.IOException;
@@ -9,6 +7,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Messager;

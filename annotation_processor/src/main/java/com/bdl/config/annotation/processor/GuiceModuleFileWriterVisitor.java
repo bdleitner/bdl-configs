@@ -1,7 +1,5 @@
 package com.bdl.config.annotation.processor;
 
-import com.google.common.base.Function;
-import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -11,7 +9,9 @@ import java.io.Writer;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 
 import javax.annotation.processing.Messager;
 import javax.tools.Diagnostic;

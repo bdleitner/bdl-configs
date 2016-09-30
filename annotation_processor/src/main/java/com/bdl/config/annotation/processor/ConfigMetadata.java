@@ -2,12 +2,12 @@ package com.bdl.config.annotation.processor;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.base.MoreObjects;
-import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.inject.BindingAnnotation;
 
 import com.bdl.config.Config;
 
+import java.util.Optional;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -49,7 +49,7 @@ public abstract class ConfigMetadata implements Comparable<ConfigMetadata> {
 
   /** Returns the name of the config.  This is equal to the field name unless a specified name is given. */
   public String name() {
-    return MoreObjects.firstNonNull(specifiedName().orNull(), fieldName());
+    return MoreObjects.firstNonNull(specifiedName().orElse(null), fieldName());
   }
 
   @Override
@@ -60,7 +60,7 @@ public abstract class ConfigMetadata implements Comparable<ConfigMetadata> {
   public static ConfigMetadata fromField(Element field) {
     Preconditions.checkState(field.getKind() == ElementKind.FIELD,
         "Element %s is not a field.", field);
-    ConfigMetadata.Builder metadata = ConfigMetadata.builder();
+    Builder metadata = ConfigMetadata.builder();
     Element enclosingClass = field.getEnclosingElement();
     String qualifiedName = ((TypeElement) enclosingClass).getQualifiedName().toString();
     int lastDot = qualifiedName.lastIndexOf('.');

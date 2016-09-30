@@ -1,11 +1,7 @@
 package com.bdl.config.annotation.processor;
 
-import com.google.common.base.Function;
-import com.google.common.base.Joiner;
-import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 
 import java.io.IOException;
@@ -13,7 +9,10 @@ import java.io.Writer;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.annotation.processing.Messager;
 import javax.tools.Diagnostic;
@@ -80,13 +79,11 @@ class DaggerModuleFileWriterVisitor implements ConfigPackageTree.Visitor<String>
     if (childPackages.isEmpty()) {
       writeLine(writer, "@Module");
     } else {
-      writeLine(writer, "@Module(includes = {%s})", Joiner.on(", ").join(
-          Iterables.transform(childPackages, new Function<String, String>() {
-            @Override
-            public String apply(String input) {
-              return String.format("%s.ConfigDaggerModule", input);
-            }
-          })));
+      writeLine(writer, "@Module(includes = {%s})",
+          childPackages.stream()
+              .map((input) -> String.format("%s.ConfigDaggerModule", input))
+              .sorted()
+              .collect(Collectors.joining(", ")));
     }
     writeLine(writer, "public class ConfigDaggerModule {");
   }

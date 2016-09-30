@@ -26,8 +26,8 @@ subprojects {
     apply plugin: 'idea'
     apply plugin: 'net.ltgt.apt'
 
-    sourceCompatibility = 1.7
-    targetCompatibility = 1.7
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
 
     ext {
         JUNIT_VERSION = '4.2'
@@ -48,29 +48,18 @@ subprojects {
         failOnError false
     }
 
-    task jarSources(type: Jar) {
-        baseName project.name
-        classifier = 'src'
-        destinationDir = file('build/libs')
-        from 'src/main/java/'
+    task sourcesJar(type: Jar, dependsOn: classes) {
+        classifier = 'sources'
+        from sourceSets.main.allSource
     }
 
-    task jarDocs(type: Jar) {
-        dependsOn javadoc
-        baseName project.name
+    task javadocJar(type: Jar, dependsOn: javadoc) {
         classifier = 'javadoc'
-        destinationDir = file('build/libs')
-        from 'build/docs/javadoc/'
+        from javadoc.destinationDir
     }
 
-    task copyJars(type: Copy) {
-        dependsOn jar, jarSources, jarDocs
-        from 'build/libs'
-        include '*.jar'
-        into '../build/libs'
-    }
-
-    build {
-        dependsOn copyJars
+    artifacts {
+        archives sourcesJar
+        archives javadocJar
     }
 }

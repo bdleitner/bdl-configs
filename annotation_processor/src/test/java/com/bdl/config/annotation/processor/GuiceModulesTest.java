@@ -3,7 +3,6 @@ package com.bdl.config.annotation.processor;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.base.Charsets;
-import com.google.common.base.Function;
 import com.google.common.collect.Maps;
 import com.google.common.io.Resources;
 
@@ -109,14 +108,11 @@ public class GuiceModulesTest {
     final Map<String, Writer> writerMap = Maps.newHashMap();
 
     GuiceModuleFileWriterVisitor guiceVisitor = new GuiceModuleFileWriterVisitor(
-        DO_NOTHING_MESSAGER, new Function<String, Writer>() {
-      @Override
-      public Writer apply(String input) {
-        StringWriter writer = new StringWriter();
-        writerMap.put(input, writer);
-        return writer;
-      }
-    });
+        DO_NOTHING_MESSAGER, input -> {
+          StringWriter writer = new StringWriter();
+          writerMap.put(input, writer);
+          return writer;
+        });
 
     tree.visit(guiceVisitor);
     for (Map.Entry<String, Writer> entry : writerMap.entrySet()) {
@@ -162,14 +158,11 @@ public class GuiceModulesTest {
     final Map<String, Writer> writerMap = Maps.newHashMap();
 
     GuiceModuleFileWriterVisitor daggerVisitor = new GuiceModuleFileWriterVisitor(
-        DO_NOTHING_MESSAGER, new Function<String, Writer>() {
-      @Override
-      public Writer apply(String input) {
-        StringWriter writer = new StringWriter();
-        writerMap.put(input + ".txt", writer);
-        return writer;
-      }
-    });
+        DO_NOTHING_MESSAGER, input -> {
+          StringWriter writer = new StringWriter();
+          writerMap.put(input + ".txt", writer);
+          return writer;
+        });
 
     tree.visit(daggerVisitor);
     assertThat(writerMap.keySet()).containsExactly(

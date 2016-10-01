@@ -107,7 +107,7 @@ class DaggerModuleFileWriterVisitor implements ConfigPackageTree.Visitor<String>
     writeLine(writer, "        .className(\"%s%s\")",  containingType.nestingPrefix(), containingType.name());
     writeLine(writer, "        .fieldName(\"%s\")", config.field().name());
     // TODO: pass in imports
-    writeLine(writer, "        .type(\"%s\")", config.type().reference(Imports.empty()));
+    writeLine(writer, "        .type(\"%s\")", config.type().toString(Imports.empty()));
     ValueMetadata nameValue = config.configAnnotation().value("name");
     if (nameValue != null) {
       writeLine(writer, "        .specifiedName(\"%s\")", nameValue.value());
@@ -136,17 +136,17 @@ class DaggerModuleFileWriterVisitor implements ConfigPackageTree.Visitor<String>
     writeLine(writer, "  @Provides");
     // TODO: imports and references
     if (qualifier.isPresent()) {
-      writeLine(writer, "  %s", qualifier.get().reference(Imports.empty()));
+      writeLine(writer, "  %s", qualifier.get().toString(Imports.empty()));
     } else {
       writeLine(writer, "  @ConfigValue(\"%s\")", config.name());
     }
 
     // TODO: pass in imports.
     writeLine(writer, "  public static %s provideConfigValue_%s(Configuration configuration) {",
-        config.type().reference(Imports.empty()), config.name());
+        config.type().toString(Imports.empty()), config.name());
     writeLine(writer, "    try {");
     writeLine(writer, "      return (%s) configuration.get(\"%s\");",
-        config.type().reference(Imports.empty()), config.fullyQualifiedPathName());
+        config.type().toString(Imports.empty()), config.fullyQualifiedPathName());
     writeLine(writer, "    } catch (ConfigException ex) {");
     writeLine(writer, "      throw ex.wrap();");
     writeLine(writer, "    }");

@@ -2,6 +2,7 @@ package com.bdl.config.annotation.processor;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableSet;
 import com.google.inject.BindingAnnotation;
 
 import com.bdl.annotation.processing.model.AnnotationMetadata;
@@ -9,11 +10,13 @@ import com.bdl.annotation.processing.model.ClassMetadata;
 import com.bdl.annotation.processing.model.FieldMetadata;
 import com.bdl.annotation.processing.model.Imports;
 import com.bdl.annotation.processing.model.TypeMetadata;
+import com.bdl.annotation.processing.model.UsesTypes;
 import com.bdl.annotation.processing.model.ValueMetadata;
 import com.bdl.config.Config;
 import com.bdl.config.Configurable;
 
 import java.util.Optional;
+import java.util.Set;
 
 import javax.inject.Qualifier;
 import javax.lang.model.util.Elements;
@@ -24,7 +27,7 @@ import javax.lang.model.util.Elements;
  * @author Ben Leitner
  */
 @AutoValue
-abstract class ConfigMetadata implements Comparable<ConfigMetadata> {
+abstract class ConfigMetadata implements Comparable<ConfigMetadata>, UsesTypes {
 
   private static final TypeMetadata CONFIG_TYPE = TypeMetadata.from(Config.class);
   private static final TypeMetadata CONFIGURABLE_TYPE = TypeMetadata.from(Configurable.class);
@@ -38,6 +41,19 @@ abstract class ConfigMetadata implements Comparable<ConfigMetadata> {
 
   TypeMetadata type() {
     return field().type().params().get(0);
+  }
+
+  @Override
+  public Set<TypeMetadata> getAllTypes() {
+    ImmutableSet.Builder<TypeMetadata> allTypes = ImmutableSet.builder();
+    allTypes.addAll(field().type().params().get(0).getAllTypes());
+    if (qualifier().isPresent()) {
+      allTypes.addAll(qualifier().get().getAllTypes());
+    }
+    if (bindingAnnotation().isPresent()) {
+      allTypes.addAll(bindingAnnotation().get().getAllTypes());
+    }
+    return allTypes.build();
   }
 
   public String fullyQualifiedPathName() {
@@ -75,7 +91,7 @@ abstract class ConfigMetadata implements Comparable<ConfigMetadata> {
       }
 
       ClassMetadata annotationClazz = ClassMetadata.fromElement(elements.getTypeElement(
-          annotationType.reference(Imports.empty())));
+          annotationType.toString(Imports.empty())));
       for (AnnotationMetadata metaAnnotation : annotationClazz.annotations()) {
         if (metaAnnotation.type().equals(QUALIFIER_TYPE)) {
           Preconditions.checkArgument(!foundQualifier,
@@ -112,7 +128,7 @@ abstract class ConfigMetadata implements Comparable<ConfigMetadata> {
     ConfigMetadata build() {
       ConfigMetadata config = autoBuild();
       Preconditions.checkArgument(config.field().type().rawType().equals(CONFIGURABLE_TYPE.rawType()),
-          "The given field is not a Configurable type, was %s", config.field().type().reference(Imports.empty()));
+          "The given field is not a Configurable type, was %s", config.field().type().toString(Imports.empty()));
       return config;
     }
   }

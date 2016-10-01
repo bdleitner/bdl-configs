@@ -14,7 +14,7 @@ import dagger.multibindings.IntoSet;
 @Module
 public class ConfigDaggerModule {
 
-  /** Adds a ConfigSupplier for config alternate_name (com.bdl.config.things.Thing1.flag1) to the set multibinder. */
+  /** Adds a ConfigSupplier for config alternate_name (Thing1.flag1) to the set multibinder. */
   @Provides
   @IntoSet
   public static ConfigSupplier provideConfigSupplier_alternate_name() {
@@ -25,7 +25,7 @@ public class ConfigDaggerModule {
         .type("String")
         .specifiedName("alternate_name")
         .build();
-    return ConfigSupplier.simple(description, com.bdl.config.things.Thing1.flag1);
+    return ConfigSupplier.simple(description, Thing1.flag1);
   }
 
   /** Binds the type of the config with a ConfigValue annotation to the Configurable's value. */

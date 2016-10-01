@@ -14,7 +14,7 @@ import dagger.multibindings.IntoSet;
 @Module
 public class ConfigDaggerModule {
 
-  /** Adds a ConfigSupplier for config sub2 (com.bdl.config.alllocal.sub2.sub.Local.sub2) to the set multibinder. */
+  /** Adds a ConfigSupplier for config sub2 (Local.sub2) to the set multibinder. */
   @Provides
   @IntoSet
   public static ConfigSupplier provideConfigSupplier_sub2() {
@@ -24,7 +24,7 @@ public class ConfigDaggerModule {
         .fieldName("sub2")
         .type("String")
         .build();
-    return ConfigSupplier.simple(description, com.bdl.config.alllocal.sub2.sub.Local.sub2);
+    return ConfigSupplier.simple(description, Local.sub2);
   }
 
   /** Binds the type of the config with a ConfigValue annotation to the Configurable's value. */

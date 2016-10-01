@@ -1,10 +1,8 @@
 package com.bdl.config;
 
-import com.bdl.config.ConfigDescription;
-import com.bdl.config.ConfigException;
-import com.bdl.config.ConfigSupplier;
-import com.bdl.config.ConfigValue;
-import com.bdl.config.Configuration;
+import com.bdl.config.annotation.processor.Annotations.DummyQualifier;
+import com.bdl.config.others.OtherThingA;
+import com.bdl.config.things.Thing2;
 
 import dagger.Module;
 import dagger.Provides;
@@ -14,7 +12,7 @@ import dagger.multibindings.IntoSet;
 @Module(includes = {com.bdl.config.others.ConfigDaggerModule, com.bdl.config.things.ConfigDaggerModule})
 public class ConfigDaggerModule {
 
-  /** Adds a ConfigSupplier for config otherFlag1 (com.bdl.config.others.OtherThingA.otherFlag1) to the set multibinder. */
+  /** Adds a ConfigSupplier for config otherFlag1 (OtherThingA.otherFlag1) to the set multibinder. */
   @Provides
   @IntoSet
   public static ConfigSupplier provideConfigSupplier_otherFlag1() {
@@ -24,7 +22,7 @@ public class ConfigDaggerModule {
         .fieldName("otherFlag1")
         .type("String")
         .build();
-    return ConfigSupplier.simple(description, com.bdl.config.others.OtherThingA.otherFlag1);
+    return ConfigSupplier.simple(description, OtherThingA.otherFlag1);
   }
 
   /** Binds the type of the config with a ConfigValue annotation to the Configurable's value. */
@@ -38,7 +36,7 @@ public class ConfigDaggerModule {
     }
   }
 
-  /** Adds a ConfigSupplier for config otherFlag2 (com.bdl.config.others.OtherThingA.otherFlag2) to the set multibinder. */
+  /** Adds a ConfigSupplier for config otherFlag2 (OtherThingA.otherFlag2) to the set multibinder. */
   @Provides
   @IntoSet
   public static ConfigSupplier provideConfigSupplier_otherFlag2() {
@@ -62,7 +60,7 @@ public class ConfigDaggerModule {
     }
   }
 
-  /** Adds a ConfigSupplier for config flag2 (com.bdl.config.things.Thing2.flag2) to the set multibinder. */
+  /** Adds a ConfigSupplier for config flag2 (Thing2.flag2) to the set multibinder. */
   @Provides
   @IntoSet
   public static ConfigSupplier provideConfigSupplier_flag2() {
@@ -72,12 +70,12 @@ public class ConfigDaggerModule {
         .fieldName("flag2")
         .type("String")
         .build();
-    return ConfigSupplier.simple(description, com.bdl.config.things.Thing2.flag2);
+    return ConfigSupplier.simple(description, Thing2.flag2);
   }
 
   /** Binds the type of the config with a DummyQualifier annotation to the Configurable's value. */
   @Provides
-  @com.bdl.config.annotation.processor.Annotations.DummyQualifier("flag2")
+  @DummyQualifier("flag2")
   public static String provideConfigValue_flag2(Configuration configuration) {
     try {
       return (String) configuration.get("com.bdl.config.things.Thing2.flag2");

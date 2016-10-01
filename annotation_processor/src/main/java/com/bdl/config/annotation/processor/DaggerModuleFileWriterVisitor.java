@@ -2,18 +2,25 @@ package com.bdl.config.annotation.processor;
 
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 
 import com.bdl.annotation.processing.model.AnnotationMetadata;
 import com.bdl.annotation.processing.model.Imports;
 import com.bdl.annotation.processing.model.TypeMetadata;
 import com.bdl.annotation.processing.model.ValueMetadata;
 import com.bdl.annotation.processing.model.Visibility;
+import com.bdl.config.ConfigDescription;
+import com.bdl.config.ConfigException;
+import com.bdl.config.ConfigSupplier;
+import com.bdl.config.ConfigValue;
+import com.bdl.config.Configuration;
+
+import dagger.Module;
+import dagger.Provides;
+import dagger.multibindings.IntoSet;
 
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -44,17 +51,28 @@ class DaggerModuleFileWriterVisitor implements ConfigPackageTree.Visitor<String>
       return childOutputs;
     }
 
-    List<String> orderedChildPackages = Lists.newArrayList(childOutputs);
-    Collections.sort(orderedChildPackages);
-    List<ConfigMetadata> orderedConfigs = Lists.newArrayList(configs);
-    Collections.sort(orderedConfigs);
+    List<String> orderedChildPackages = childOutputs.stream().sorted().collect(Collectors.toList());
+    List<ConfigMetadata> orderedConfigs = configs.stream().sorted().collect(Collectors.toList());
+
+    ImmutableSet.Builder<TypeMetadata> referencedTypes = ImmutableSet.<TypeMetadata>builder()
+        .add(TypeMetadata.from(ConfigDescription.class))
+        .add(TypeMetadata.from(ConfigException.class))
+        .add(TypeMetadata.from(ConfigSupplier.class))
+        .add(TypeMetadata.from(ConfigValue.class))
+        .add(TypeMetadata.from(Configuration.class))
+        .add(TypeMetadata.from(Module.class))
+        .add(TypeMetadata.from(Provides.class))
+        .add(TypeMetadata.from(IntoSet.class));
+    configs.forEach(config -> referencedTypes.addAll(config.getAllTypes()));
+
+    Imports imports = Imports.create(packageName, referencedTypes.build());
 
     try {
       Writer writer = writerFunction.apply(PackageNameUtil.append(packageName, "ConfigDaggerModule"));
-      writeClassOpening(writer, packageName, orderedChildPackages);
+      writeClassOpening(writer, imports, packageName, orderedChildPackages);
       for (ConfigMetadata config : orderedConfigs) {
-        writeConfigSupplierBinding(writer, config);
-        writeConfigValueBinding(writer, config);
+        writeConfigSupplierBinding(writer, imports, config);
+        writeConfigValueBinding(writer, imports, config);
       }
       writeClassClosing(writer);
 
@@ -67,18 +85,17 @@ class DaggerModuleFileWriterVisitor implements ConfigPackageTree.Visitor<String>
     return ImmutableSet.of(packageName);
   }
 
-  private void writeClassOpening(Writer writer, String packageName, Collection<String> childPackages) throws IOException {
+  private void writeClassOpening(Writer writer, Imports imports, String packageName, Collection<String> childPackages)
+      throws IOException {
     writeLine(writer, "package %s;", packageName);
-    writeLine(writer, "");
-    writeLine(writer, "import com.bdl.config.ConfigDescription;");
-    writeLine(writer, "import com.bdl.config.ConfigException;");
-    writeLine(writer, "import com.bdl.config.ConfigSupplier;");
-    writeLine(writer, "import com.bdl.config.ConfigValue;");
-    writeLine(writer, "import com.bdl.config.Configuration;");
-    writeLine(writer, "");
-    writeLine(writer, "import dagger.Module;");
-    writeLine(writer, "import dagger.Provides;");
-    writeLine(writer, "import dagger.multibindings.IntoSet;");
+    String previous = null;
+    for (String importString : imports.getImports()) {
+      if (ImportUtil.needsNewLine(previous, importString)) {
+        writeLine(writer, "");
+      }
+      previous = importString;
+      writeLine(writer, "import %s;", importString);
+    }
     writeLine(writer, "");
     writeLine(writer, "/** Dagger module for binding configs in the %s package. */", packageName);
 
@@ -94,10 +111,10 @@ class DaggerModuleFileWriterVisitor implements ConfigPackageTree.Visitor<String>
     writeLine(writer, "public class ConfigDaggerModule {");
   }
 
-  private void writeConfigSupplierBinding(Writer writer, ConfigMetadata config) throws IOException {
+  private void writeConfigSupplierBinding(Writer writer, Imports imports, ConfigMetadata config) throws IOException {
     writeLine(writer, "");
     writeLine(writer, "  /** Adds a ConfigSupplier for config %s (%s) to the set multibinder. */",
-        config.name(), config.fullyQualifiedPathName());
+        config.name(), config.fieldReference(imports));
     writeLine(writer, "  @Provides");
     writeLine(writer, "  @IntoSet");
     writeLine(writer, "  public static ConfigSupplier provideConfigSupplier_%s() {", config.name());
@@ -106,8 +123,7 @@ class DaggerModuleFileWriterVisitor implements ConfigPackageTree.Visitor<String>
     writeLine(writer, "        .packageName(\"%s\")", containingType.packageName());
     writeLine(writer, "        .className(\"%s%s\")",  containingType.nestingPrefix(), containingType.name());
     writeLine(writer, "        .fieldName(\"%s\")", config.field().name());
-    // TODO: pass in imports
-    writeLine(writer, "        .type(\"%s\")", config.type().toString(Imports.empty()));
+    writeLine(writer, "        .type(\"%s\")", config.type().toString(imports));
     ValueMetadata nameValue = config.configAnnotation().value("name");
     if (nameValue != null) {
       writeLine(writer, "        .specifiedName(\"%s\")", nameValue.value());
@@ -123,30 +139,28 @@ class DaggerModuleFileWriterVisitor implements ConfigPackageTree.Visitor<String>
       writeLine(writer, "    return ConfigSupplier.reflective(description);");
     } else {
       // Either public or protected/package-local and we are in the same package, so direct access ok.
-      writeLine(writer, "    return ConfigSupplier.simple(description, %s);", config.fullyQualifiedPathName());
+      writeLine(writer, "    return ConfigSupplier.simple(description, %s);", config.fieldReference(imports));
     }
     writeLine(writer, "  }");
   }
 
-  private void writeConfigValueBinding(Writer writer, ConfigMetadata config) throws IOException {
+  private void writeConfigValueBinding(Writer writer, Imports imports, ConfigMetadata config) throws IOException {
     writeLine(writer, "");
     Optional<AnnotationMetadata> qualifier = config.qualifier();
     writeLine(writer, "  /** Binds the type of the config with a %s annotation to the Configurable's value. */",
         qualifier.isPresent() ? qualifier.get().type().name() : "ConfigValue");
     writeLine(writer, "  @Provides");
-    // TODO: imports and references
     if (qualifier.isPresent()) {
-      writeLine(writer, "  %s", qualifier.get().toString(Imports.empty()));
+      writeLine(writer, "  %s", qualifier.get().toString(imports));
     } else {
       writeLine(writer, "  @ConfigValue(\"%s\")", config.name());
     }
 
-    // TODO: pass in imports.
     writeLine(writer, "  public static %s provideConfigValue_%s(Configuration configuration) {",
-        config.type().toString(Imports.empty()), config.name());
+        config.type().toString(imports), config.name());
     writeLine(writer, "    try {");
     writeLine(writer, "      return (%s) configuration.get(\"%s\");",
-        config.type().toString(Imports.empty()), config.fullyQualifiedPathName());
+        config.type().toString(imports), config.fullyQualifiedPathName());
     writeLine(writer, "    } catch (ConfigException ex) {");
     writeLine(writer, "      throw ex.wrap();");
     writeLine(writer, "    }");

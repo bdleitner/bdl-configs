@@ -47,6 +47,7 @@ abstract class ConfigMetadata implements Comparable<ConfigMetadata>, UsesTypes {
   public Set<TypeMetadata> getAllTypes() {
     ImmutableSet.Builder<TypeMetadata> allTypes = ImmutableSet.builder();
     allTypes.addAll(field().type().params().get(0).getAllTypes());
+    allTypes.add(field().containingClass());
     if (qualifier().isPresent()) {
       allTypes.addAll(qualifier().get().getAllTypes());
     }
@@ -57,12 +58,11 @@ abstract class ConfigMetadata implements Comparable<ConfigMetadata>, UsesTypes {
   }
 
   public String fullyQualifiedPathName() {
-    TypeMetadata containingClass = field().containingClass();
-    return String.format("%s.%s%s.%s",
-        containingClass.packageName(),
-        containingClass.nestingPrefix(),
-        containingClass.name(),
-        field().name());
+    return fieldReference(Imports.empty());
+  }
+
+  public String fieldReference(Imports imports) {
+    return String.format("%s.%s", field().containingClass().toString(imports), field().name());
   }
 
   /** Returns the name of the config.  This is equal to the field name unless a specified name is given. */

@@ -19,7 +19,7 @@ public class ConfigGuiceModule extends AbstractModule {
     bindConfigSupplier_sub1(supplierBinder);
   }
 
-  /** Binds a ConfigSupplier for config sub1 (com.bdl.config.alllocal.sub1.Local.sub1) to the set multibinder. */
+  /** Binds a ConfigSupplier for config sub1 (Local.sub1) to the set multibinder. */
   private void bindConfigSupplier_sub1(Multibinder<ConfigSupplier> binder) {
     ConfigDescription description = ConfigDescription.builder()
         .packageName("com.bdl.config.alllocal.sub1")
@@ -28,7 +28,7 @@ public class ConfigGuiceModule extends AbstractModule {
         .type("Integer")
         .build();
     binder.addBinding().toInstance(
-        ConfigSupplier.simple(description, com.bdl.config.alllocal.sub1.Local.sub1));
+        ConfigSupplier.simple(description, Local.sub1));
   }
 
   /** Binds the type of the config with a ConfigValue annotation to the Configurable's value. */

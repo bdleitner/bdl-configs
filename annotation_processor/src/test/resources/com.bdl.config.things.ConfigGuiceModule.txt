@@ -19,7 +19,7 @@ public class ConfigGuiceModule extends AbstractModule {
     bindConfigSupplier_flag1(supplierBinder);
   }
 
-  /** Binds a ConfigSupplier for config flag1 (com.bdl.config.things.Thing1.flag1) to the set multibinder. */
+  /** Binds a ConfigSupplier for config flag1 (Thing1.flag1) to the set multibinder. */
   private void bindConfigSupplier_flag1(Multibinder<ConfigSupplier> binder) {
     ConfigDescription description = ConfigDescription.builder()
         .packageName("com.bdl.config.things")
@@ -28,7 +28,7 @@ public class ConfigGuiceModule extends AbstractModule {
         .type("String")
         .build();
     binder.addBinding().toInstance(
-        ConfigSupplier.simple(description, com.bdl.config.things.Thing1.flag1));
+        ConfigSupplier.simple(description, Thing1.flag1));
   }
 
   /** Binds the type of the config with a ConfigValue annotation to the Configurable's value. */

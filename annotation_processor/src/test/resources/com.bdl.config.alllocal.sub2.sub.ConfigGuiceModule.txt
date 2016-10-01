@@ -25,7 +25,7 @@ public class ConfigGuiceModule extends AbstractModule {
         .packageName("com.bdl.config.alllocal.sub2.sub")
         .className("Local")
         .fieldName("sub2")
-        .type("java.lang.String")
+        .type("String")
         .build();
     binder.addBinding().toInstance(
         ConfigSupplier.simple(description, com.bdl.config.alllocal.sub2.sub.Local.sub2));
@@ -34,9 +34,9 @@ public class ConfigGuiceModule extends AbstractModule {
   /** Binds the type of the config with a ConfigValue annotation to the Configurable's value. */
   @Provides
   @ConfigValue("sub2")
-  java.lang.String provideConfigValue_sub2(Configuration configuration) {
+  String provideConfigValue_sub2(Configuration configuration) {
     try {
-      return (java.lang.String) configuration.get("com.bdl.config.alllocal.sub2.sub.Local.sub2");
+      return (String) configuration.get("com.bdl.config.alllocal.sub2.sub.Local.sub2");
     } catch (ConfigException ex) {
       throw ex.wrap();
     }

@@ -105,7 +105,7 @@ public class ConfigurableTest {
     try {
       configurable.setFromString(null);
       fail();
-    } catch (NullPointerException ex) {
+    } catch (InvalidConfigValueException ex) {
       // expected
     }
   }
@@ -119,7 +119,7 @@ public class ConfigurableTest {
     try {
       configurable.setFromString("blah");
       fail();
-    } catch (NumberFormatException ex) {
+    } catch (InvalidConfigValueException ex) {
       // expected
     }
   }

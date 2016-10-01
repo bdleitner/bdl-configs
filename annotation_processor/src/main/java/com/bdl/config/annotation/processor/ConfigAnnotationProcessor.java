@@ -1,13 +1,16 @@
 package com.bdl.config.annotation.processor;
 
+import com.google.common.base.Throwables;
+
+import com.bdl.annotation.processing.model.FieldMetadata;
 import com.bdl.config.Config;
 
 import java.io.IOException;
 import java.io.Writer;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Messager;
@@ -18,7 +21,9 @@ import javax.annotation.processing.SupportedSourceVersion;
 import javax.lang.model.SourceVersion;
 import javax.lang.model.element.Element;
 import javax.lang.model.element.ElementKind;
+import javax.lang.model.element.Modifier;
 import javax.lang.model.element.TypeElement;
+import javax.lang.model.util.Elements;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
 
@@ -28,26 +33,27 @@ import javax.tools.JavaFileObject;
  * @author Ben Leitner
  */
 @SupportedAnnotationTypes("com.bdl.config.Config")
-@SupportedSourceVersion(SourceVersion.RELEASE_7)
+@SupportedSourceVersion(SourceVersion.RELEASE_8)
 public class ConfigAnnotationProcessor extends AbstractProcessor {
 
   private Messager messager;
+  private Elements elements;
 
   @Override
   public synchronized void init(ProcessingEnvironment processingEnv) {
     super.init(processingEnv);
     messager = processingEnv.getMessager();
+    elements = processingEnv.getElementUtils();
   }
 
   @Override
   public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-    List<ConfigMetadata>  foundConfigs = new ArrayList<>();
+    List<ConfigMetadata>  foundConfigs = roundEnv.getElementsAnnotatedWith(Config.class)
+        .stream()
+        .filter(ConfigAnnotationProcessor::isStaticField)
+        .map(element -> ConfigMetadata.from(elements, FieldMetadata.from(element)))
+        .collect(Collectors.toList());
 
-    for (Element element : roundEnv.getElementsAnnotatedWith(Config.class)) {
-      if (element.getKind() == ElementKind.FIELD) {
-        foundConfigs.add(ConfigMetadata.fromField(element));
-      }
-    }
     if (foundConfigs.isEmpty()) {
       return true;
     }
@@ -73,12 +79,17 @@ public class ConfigAnnotationProcessor extends AbstractProcessor {
     } catch (Exception ex) {
       messager.printMessage(
           Diagnostic.Kind.ERROR,
-          ex.getMessage());
+          "Error in Config Processor\n" + ex.getMessage() + "\n" + Throwables.getStackTraceAsString(ex));
     }
     return true;
   }
 
-  private static class JavaFileObjectWriterFunction implements Function<String, Writer> {
+  static boolean isStaticField(Element element) {
+    return element.getKind() == ElementKind.FIELD
+        && element.getModifiers().contains(Modifier.STATIC);
+  }
+
+  static class JavaFileObjectWriterFunction implements Function<String, Writer> {
 
     private final ProcessingEnvironment env;
 

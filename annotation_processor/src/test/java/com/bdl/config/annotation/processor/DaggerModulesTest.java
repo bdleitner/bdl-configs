@@ -6,6 +6,13 @@ import com.google.common.base.Charsets;
 import com.google.common.collect.Maps;
 import com.google.common.io.Resources;
 
+import com.bdl.annotation.processing.model.AnnotationMetadata;
+import com.bdl.annotation.processing.model.FieldMetadata;
+import com.bdl.annotation.processing.model.TypeMetadata;
+import com.bdl.annotation.processing.model.ValueMetadata;
+import com.bdl.annotation.processing.model.Visibility;
+import com.bdl.config.Config;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -17,10 +24,6 @@ import java.net.URL;
 import java.util.Map;
 
 import javax.annotation.processing.Messager;
-import javax.lang.model.element.AnnotationMirror;
-import javax.lang.model.element.AnnotationValue;
-import javax.lang.model.element.Element;
-import javax.tools.Diagnostic;
 
 /**
  * Tests for the combined functionality of {@link ConfigPackageTree} and {@link DaggerModuleFileWriterVisitor}.
@@ -30,27 +33,8 @@ import javax.tools.Diagnostic;
 @RunWith(JUnit4.class)
 public class DaggerModulesTest {
 
-  private static final Messager DO_NOTHING_MESSAGER = new Messager() {
-    @Override
-    public void printMessage(Diagnostic.Kind kind, CharSequence msg) {
-
-    }
-
-    @Override
-    public void printMessage(Diagnostic.Kind kind, CharSequence msg, Element e) {
-
-    }
-
-    @Override
-    public void printMessage(Diagnostic.Kind kind, CharSequence msg, Element e, AnnotationMirror a) {
-
-    }
-
-    @Override
-    public void printMessage(Diagnostic.Kind kind, CharSequence msg, Element e, AnnotationMirror a, AnnotationValue v) {
-
-    }
-  };
+  private static final TypeMetadata CONFIG_TYPE = TypeMetadata.from(Config.class);
+  private static final Messager DO_NOTHING_MESSAGER = new Auto_Messager_Impl();
 
   @Test
   public void testDaggerModuleOutput() throws IOException {
@@ -58,49 +42,90 @@ public class DaggerModulesTest {
     tree.addConfig(
         DO_NOTHING_MESSAGER,
         ConfigMetadata.builder()
-            .packageName("com.bdl.config.things")
-            .className("Thing1")
-            .fieldName("flag1")
-            .type("java.lang.String")
-            .visibility(ConfigMetadata.Visibility.PACKAGE)
+            .field(FieldMetadata.builder()
+                .containingClass(TypeMetadata.builder()
+                    .setPackageName("com.bdl.config.things")
+                    .setName("Thing1")
+                    .build())
+                .name("flag1")
+                .type(TypeUtils.configOf(TypeMetadata.STRING))
+                .visibility(Visibility.PACKAGE_LOCAL)
+                .build())
+            .configAnnotation(AnnotationMetadata.builder()
+                .setType(CONFIG_TYPE)
+                .putValue("name", ValueMetadata.create("alternate_name"))
+                .build())
             .build());
     tree.addConfig(
         DO_NOTHING_MESSAGER,
         ConfigMetadata.builder()
-            .packageName("com.bdl.config.things")
-            .className("Thing2")
-            .fieldName("flag2")
-            .type("java.lang.String")
-            .visibility(ConfigMetadata.Visibility.PUBLIC)
-            .qualifier(Annotations.qualifier("flag2").toString())
+            .field(FieldMetadata.builder()
+                .containingClass(TypeMetadata.builder()
+                    .setPackageName("com.bdl.config.things")
+                    .setName("Thing2")
+                    .build())
+                .name("flag2")
+                .type(TypeUtils.configOf(TypeMetadata.STRING))
+                .visibility(Visibility.PUBLIC)
+                .build())
+            .configAnnotation(AnnotationMetadata.builder()
+                .setType(CONFIG_TYPE)
+                .build())
+            .qualifier(AnnotationMetadata.builder()
+                .setType(TypeMetadata.from(Annotations.DummyQualifier.class))
+                .putValue("value", ValueMetadata.create("flag2"))
+                .build())
             .build());
     tree.addConfig(
         DO_NOTHING_MESSAGER,
         ConfigMetadata.builder()
-            .packageName("com.bdl.config.others")
-            .className("OtherThingA")
-            .fieldName("otherFlag1")
-            .type("java.lang.String")
-            .visibility(ConfigMetadata.Visibility.PUBLIC)
+            .field(FieldMetadata.builder()
+                .containingClass(TypeMetadata.builder()
+                    .setPackageName("com.bdl.config.others")
+                    .setName("OtherThingA")
+                    .build())
+                .name("otherFlag1")
+                .type(TypeUtils.configOf(TypeMetadata.STRING))
+                .visibility(Visibility.PUBLIC)
+                .build())
+            .configAnnotation(AnnotationMetadata.builder()
+                .setType(CONFIG_TYPE)
+                .build())
             .build());
     tree.addConfig(
         DO_NOTHING_MESSAGER,
         ConfigMetadata.builder()
-            .packageName("com.bdl.config.others")
-            .className("OtherThingA")
-            .fieldName("otherFlag2")
-            .type("java.lang.String")
-            .visibility(ConfigMetadata.Visibility.PRIVATE)
+            .field(FieldMetadata.builder()
+                .containingClass(TypeMetadata.builder()
+                    .setPackageName("com.bdl.config.others")
+                    .setName("OtherThingA")
+                    .build())
+                .name("otherFlag2")
+                .type(TypeUtils.configOf(TypeMetadata.STRING))
+                .visibility(Visibility.PRIVATE)
+                .build())
+            .configAnnotation(AnnotationMetadata.builder()
+                .setType(CONFIG_TYPE)
+                .build())
             .build());
     tree.addConfig(
         DO_NOTHING_MESSAGER,
         ConfigMetadata.builder()
-            .packageName("com.bdl.config.others")
-            .className("OtherThingA")
-            .fieldName("otherFlag3")
-            .type("java.lang.String")
-            .visibility(ConfigMetadata.Visibility.PACKAGE)
-            .qualifier(Annotations.qualifier("").toString())
+            .field(FieldMetadata.builder()
+                .containingClass(TypeMetadata.builder()
+                    .setPackageName("com.bdl.config.others")
+                    .setName("OtherThingA")
+                    .build())
+                .name("otherFlag3")
+                .type(TypeUtils.configOf(TypeMetadata.STRING))
+                .visibility(Visibility.PACKAGE_LOCAL)
+                .build())
+            .configAnnotation(AnnotationMetadata.builder()
+                .setType(CONFIG_TYPE)
+                .build())
+            .qualifier(AnnotationMetadata.builder()
+                .setType(TypeMetadata.from(Annotations.DummyQualifier.class))
+                .build())
             .build());
 
     tree.pullPublicAndPrivateConfigsUp();
@@ -133,20 +158,34 @@ public class DaggerModulesTest {
     tree.addConfig(
         DO_NOTHING_MESSAGER,
         ConfigMetadata.builder()
-            .packageName("com.bdl.config.alllocal.sub1")
-            .className("Local")
-            .fieldName("sub1")
-            .type("java.lang.Integer")
-            .visibility(ConfigMetadata.Visibility.PACKAGE)
+            .field(FieldMetadata.builder()
+                .containingClass(TypeMetadata.builder()
+                    .setPackageName("com.bdl.config.alllocal.sub1")
+                    .setName("Local")
+                    .build())
+                .name("sub1")
+                .type(TypeUtils.configOf(TypeMetadata.BOXED_INTEGER))
+                .visibility(Visibility.PACKAGE_LOCAL)
+                .build())
+            .configAnnotation(AnnotationMetadata.builder()
+                .setType(CONFIG_TYPE)
+                .build())
             .build());
     tree.addConfig(
         DO_NOTHING_MESSAGER,
         ConfigMetadata.builder()
-            .packageName("com.bdl.config.alllocal.sub2.sub")
-            .className("Local")
-            .fieldName("sub2")
-            .type("java.lang.String")
-            .visibility(ConfigMetadata.Visibility.PACKAGE)
+            .field(FieldMetadata.builder()
+                .containingClass(TypeMetadata.builder()
+                    .setPackageName("com.bdl.config.alllocal.sub2.sub")
+                    .setName("Local")
+                    .build())
+                .name("sub2")
+                .type(TypeUtils.configOf(TypeMetadata.STRING))
+                .visibility(Visibility.PACKAGE_LOCAL)
+                .build())
+            .configAnnotation(AnnotationMetadata.builder()
+                .setType(CONFIG_TYPE)
+                .build())
             .build());
 
     tree.pullPublicAndPrivateConfigsUp();
@@ -172,6 +211,5 @@ public class DaggerModulesTest {
 
       assertThat(entry.getValue().toString()).isEqualTo(file);
     }
-
   }
 }

@@ -22,7 +22,7 @@ public class ConfigDaggerModule {
         .packageName("com.bdl.config.alllocal.sub1")
         .className("Local")
         .fieldName("sub1")
-        .type("java.lang.Integer")
+        .type("Integer")
         .build();
     return ConfigSupplier.simple(description, com.bdl.config.alllocal.sub1.Local.sub1);
   }
@@ -30,9 +30,9 @@ public class ConfigDaggerModule {
   /** Binds the type of the config with a ConfigValue annotation to the Configurable's value. */
   @Provides
   @ConfigValue("sub1")
-  public static java.lang.Integer provideConfigValue_sub1(Configuration configuration) {
+  public static Integer provideConfigValue_sub1(Configuration configuration) {
     try {
-      return (java.lang.Integer) configuration.get("com.bdl.config.alllocal.sub1.Local.sub1");
+      return (Integer) configuration.get("com.bdl.config.alllocal.sub1.Local.sub1");
     } catch (ConfigException ex) {
       throw ex.wrap();
     }

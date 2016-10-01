@@ -108,6 +108,9 @@ public final class Configurable<T> {
    * </ul>
    */
   T setFromString(String valueString) throws ConfigException {
+    if (valueString == null) {
+      throw new InvalidConfigValueException("Cannot set from null string.");
+    }
     try {
       T result = parser.apply(Preconditions.checkNotNull(valueString, "New config string value cannot be null."));
       return setValue(result);

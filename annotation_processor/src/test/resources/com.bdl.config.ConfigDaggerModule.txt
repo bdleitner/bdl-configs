@@ -22,7 +22,7 @@ public class ConfigDaggerModule {
         .packageName("com.bdl.config.others")
         .className("OtherThingA")
         .fieldName("otherFlag1")
-        .type("java.lang.String")
+        .type("String")
         .build();
     return ConfigSupplier.simple(description, com.bdl.config.others.OtherThingA.otherFlag1);
   }
@@ -30,9 +30,9 @@ public class ConfigDaggerModule {
   /** Binds the type of the config with a ConfigValue annotation to the Configurable's value. */
   @Provides
   @ConfigValue("otherFlag1")
-  public static java.lang.String provideConfigValue_otherFlag1(Configuration configuration) {
+  public static String provideConfigValue_otherFlag1(Configuration configuration) {
     try {
-      return (java.lang.String) configuration.get("com.bdl.config.others.OtherThingA.otherFlag1");
+      return (String) configuration.get("com.bdl.config.others.OtherThingA.otherFlag1");
     } catch (ConfigException ex) {
       throw ex.wrap();
     }
@@ -46,7 +46,7 @@ public class ConfigDaggerModule {
         .packageName("com.bdl.config.others")
         .className("OtherThingA")
         .fieldName("otherFlag2")
-        .type("java.lang.String")
+        .type("String")
         .build();
     return ConfigSupplier.reflective(description);
   }
@@ -54,9 +54,9 @@ public class ConfigDaggerModule {
   /** Binds the type of the config with a ConfigValue annotation to the Configurable's value. */
   @Provides
   @ConfigValue("otherFlag2")
-  public static java.lang.String provideConfigValue_otherFlag2(Configuration configuration) {
+  public static String provideConfigValue_otherFlag2(Configuration configuration) {
     try {
-      return (java.lang.String) configuration.get("com.bdl.config.others.OtherThingA.otherFlag2");
+      return (String) configuration.get("com.bdl.config.others.OtherThingA.otherFlag2");
     } catch (ConfigException ex) {
       throw ex.wrap();
     }
@@ -70,7 +70,7 @@ public class ConfigDaggerModule {
         .packageName("com.bdl.config.things")
         .className("Thing2")
         .fieldName("flag2")
-        .type("java.lang.String")
+        .type("String")
         .build();
     return ConfigSupplier.simple(description, com.bdl.config.things.Thing2.flag2);
   }
@@ -78,9 +78,9 @@ public class ConfigDaggerModule {
   /** Binds the type of the config with a DummyQualifier annotation to the Configurable's value. */
   @Provides
   @com.bdl.config.annotation.processor.Annotations.DummyQualifier("flag2")
-  public static java.lang.String provideConfigValue_flag2(Configuration configuration) {
+  public static String provideConfigValue_flag2(Configuration configuration) {
     try {
-      return (java.lang.String) configuration.get("com.bdl.config.things.Thing2.flag2");
+      return (String) configuration.get("com.bdl.config.things.Thing2.flag2");
     } catch (ConfigException ex) {
       throw ex.wrap();
     }

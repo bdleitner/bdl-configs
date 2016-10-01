@@ -4,6 +4,8 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 
+import com.bdl.annotation.processing.model.Visibility;
+
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
@@ -31,7 +33,7 @@ class ConfigPackageTree {
   }
 
   void addConfig(Messager messager, ConfigMetadata config) {
-    root.addConfigToPackage(messager, config.packageName() + ".", config);
+    root.addConfigToPackage(messager, config.field().containingClass().packageName() + ".", config);
   }
 
   void pullPublicAndPrivateConfigsUp() {
@@ -76,7 +78,7 @@ class ConfigPackageTree {
       if (packageNameTail.isEmpty()) {
         messager.printMessage(Diagnostic.Kind.NOTE,
             String.format("Adding %s config %s to package %s.",
-                config.visibility(), config.fullyQualifiedPathName(), this.packageName));
+                config.field().visibility(), config.fullyQualifiedPathName(), this.packageName));
         configs.add(config);
         return;
       }
@@ -100,16 +102,14 @@ class ConfigPackageTree {
           canRemoveMe = false;
         }
       }
-      for (String key : childrenToRemove) {
-        children.remove(key);
-      }
+      childrenToRemove.forEach(children::remove);
       if (this == node) {
         return false;
       }
       for (Iterator<ConfigMetadata> it = configs.iterator(); it.hasNext();) {
         ConfigMetadata config = it.next();
-        if (config.visibility() == ConfigMetadata.Visibility.PUBLIC
-            || config.visibility() == ConfigMetadata.Visibility.PRIVATE) {
+        if (config.field().visibility() == Visibility.PUBLIC
+            || config.field().visibility() == Visibility.PRIVATE) {
           node.configs.add(config);
           it.remove();
         }

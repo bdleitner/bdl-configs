@@ -4,6 +4,12 @@ import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
+import com.bdl.annotation.processing.model.AnnotationMetadata;
+import com.bdl.annotation.processing.model.Imports;
+import com.bdl.annotation.processing.model.TypeMetadata;
+import com.bdl.annotation.processing.model.ValueMetadata;
+import com.bdl.annotation.processing.model.Visibility;
+
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Collection;
@@ -105,23 +111,27 @@ class GuiceModuleFileWriterVisitor implements ConfigPackageTree.Visitor<String> 
     writeLine(writer, "");
     writeLine(writer, "  /** Binds a ConfigSupplier for config %s (%s) to the set multibinder. */",
         config.name(), config.fullyQualifiedPathName());
+    TypeMetadata containingType = config.field().containingClass();
     writeLine(writer, "  private void bindConfigSupplier_%s(Multibinder<ConfigSupplier> binder) {", config.name());
     writeLine(writer, "    ConfigDescription description = ConfigDescription.builder()");
-    writeLine(writer, "        .packageName(\"%s\")", config.packageName());
-    writeLine(writer, "        .className(\"%s\")", config.className());
-    writeLine(writer, "        .fieldName(\"%s\")", config.fieldName());
-    writeLine(writer, "        .type(\"%s\")", config.type());
-    if (config.specifiedName().isPresent()) {
-      writeLine(writer, "        .specifiedName(\"%s\")", config.specifiedName().get());
+    writeLine(writer, "        .packageName(\"%s\")", containingType.packageName());
+    writeLine(writer, "        .className(\"%s%s\")", containingType.nestingPrefix(), containingType.name());
+    writeLine(writer, "        .fieldName(\"%s\")", config.field().name());
+    // TODO: pass in imports
+    writeLine(writer, "        .type(\"%s\")", config.type().reference(Imports.empty()));
+    ValueMetadata nameValue = config.configAnnotation().value("name");
+    if (nameValue != null) {
+      writeLine(writer, "        .specifiedName(\"%s\")", nameValue.value());
     }
-    if (config.description().isPresent()) {
-      writeLine(writer, "        .description(\"%s\")", config.description());
+    ValueMetadata descriptionValue = config.configAnnotation().value("desc");
+    if (descriptionValue != null) {
+      writeLine(writer, "        .description(\"%s\")", descriptionValue.value());
     }
     writeLine(writer, "        .build();");
     writeLine(writer, "    binder.addBinding().toInstance(");
 
 
-    if (config.visibility() == ConfigMetadata.Visibility.PRIVATE) {
+    if (config.field().visibility() == Visibility.PRIVATE) {
       // Must use a reflective supplier
       writeLine(writer, "        ConfigSupplier.reflective(description));");
     } else {
@@ -133,31 +143,26 @@ class GuiceModuleFileWriterVisitor implements ConfigPackageTree.Visitor<String> 
 
   private void writeConfigValueBinding(Writer writer, ConfigMetadata config) throws IOException {
     writeLine(writer, "");
-    Optional<String> bindingAnnotation = config.bindingAnnotation();
+    Optional<AnnotationMetadata> bindingAnnotation = config.bindingAnnotation();
     writeLine(writer, "  /** Binds the type of the config with a %s annotation to the Configurable's value. */",
-        bindingAnnotation.isPresent() ? simpleAnnotationName(bindingAnnotation.get()) : "ConfigValue");
+        bindingAnnotation.isPresent() ? bindingAnnotation.get().type().name() : "ConfigValue");
     writeLine(writer, "  @Provides");
     if (bindingAnnotation.isPresent()) {
-      writeLine(writer, "  %s", bindingAnnotation.get());
+      // TODO: imports and references
+      writeLine(writer, "  %s", bindingAnnotation.get().reference(Imports.empty()));
     } else {
       writeLine(writer, "  @ConfigValue(\"%s\")", config.name());
     }
 
     writeLine(writer, "  %s provideConfigValue_%s(Configuration configuration) {",
-        config.type(), config.name());
+        config.type().reference(Imports.empty()), config.name());
     writeLine(writer, "    try {");
     writeLine(writer, "      return (%s) configuration.get(\"%s\");",
-        config.type(), config.fullyQualifiedPathName());
+        config.type().reference(Imports.empty()), config.fullyQualifiedPathName());
     writeLine(writer, "    } catch (ConfigException ex) {");
     writeLine(writer, "      throw ex.wrap();");
     writeLine(writer, "    }");
     writeLine(writer, "  }");
-  }
-
-  private String simpleAnnotationName(String fullName) {
-    int lastDot = fullName.lastIndexOf('.');
-    int openParen = fullName.indexOf('(');
-    return fullName.substring(lastDot + 1, openParen);
   }
 
   private void writeClassClosing(Writer writer) throws IOException {

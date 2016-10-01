@@ -25,7 +25,7 @@ public class ConfigGuiceModule extends AbstractModule {
         .packageName("com.bdl.config.alllocal.sub1")
         .className("Local")
         .fieldName("sub1")
-        .type("java.lang.Integer")
+        .type("Integer")
         .build();
     binder.addBinding().toInstance(
         ConfigSupplier.simple(description, com.bdl.config.alllocal.sub1.Local.sub1));
@@ -34,9 +34,9 @@ public class ConfigGuiceModule extends AbstractModule {
   /** Binds the type of the config with a ConfigValue annotation to the Configurable's value. */
   @Provides
   @ConfigValue("sub1")
-  java.lang.Integer provideConfigValue_sub1(Configuration configuration) {
+  Integer provideConfigValue_sub1(Configuration configuration) {
     try {
-      return (java.lang.Integer) configuration.get("com.bdl.config.alllocal.sub1.Local.sub1");
+      return (Integer) configuration.get("com.bdl.config.alllocal.sub1.Local.sub1");
     } catch (ConfigException ex) {
       throw ex.wrap();
     }

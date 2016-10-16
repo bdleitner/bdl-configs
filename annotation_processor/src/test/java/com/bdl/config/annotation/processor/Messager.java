@@ -4,7 +4,7 @@ import com.bdl.auto.impl.AutoImpl;
 import com.bdl.auto.impl.ImplOption;
 
 /**
- * TODO: JavaDoc this class.
+ * Dummy Messager implementation that does nothing, for use in tests.
  *
  * @author Ben Leitner
  */

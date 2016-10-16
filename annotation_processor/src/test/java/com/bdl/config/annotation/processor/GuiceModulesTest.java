@@ -1,5 +1,6 @@
 package com.bdl.config.annotation.processor;
 
+import static com.bdl.annotation.processing.model.TypeMetadata.simpleTypeParam;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.base.Charsets;
@@ -46,6 +47,7 @@ public class GuiceModulesTest {
                 .containingClass(TypeMetadata.builder()
                     .setPackageName("com.bdl.config.things")
                     .setName("Thing1")
+                    .addParam(simpleTypeParam("T"))
                     .build())
                 .name("flag1")
                 .type(TypeUtils.configOf(TypeMetadata.STRING))

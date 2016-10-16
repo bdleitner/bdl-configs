@@ -62,7 +62,7 @@ abstract class ConfigMetadata implements Comparable<ConfigMetadata>, UsesTypes {
   }
 
   public String fieldReference(Imports imports) {
-    return String.format("%s.%s", field().containingClass().toString(imports), field().name());
+    return String.format("%s.%s", field().containingClass().rawType().toString(imports), field().name());
   }
 
   /** Returns the name of the config.  This is equal to the field name unless a specified name is given. */

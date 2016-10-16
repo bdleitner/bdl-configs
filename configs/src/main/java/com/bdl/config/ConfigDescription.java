@@ -26,8 +26,22 @@ public abstract class ConfigDescription {
     return MoreObjects.firstNonNull(specifiedName().orNull(), fieldName());
   }
 
-  public String fullyQualifiedName() {
-    return String.format("%s.%s.%s", packageName(), className(), fieldName());
+  public String fullyQualifiedClassName() {
+    StringBuilder s = new StringBuilder();
+    if (!packageName().isEmpty()) {
+      s.append(packageName()).append(".");
+    }
+    s.append(className());
+    return s.toString();
+  }
+
+  public String fullyQualifiedFieldName() {
+    StringBuilder s = new StringBuilder();
+    if (!packageName().isEmpty()) {
+      s.append(packageName()).append(".");
+    }
+    s.append(className()).append(".").append(fieldName());
+    return s.toString();
   }
 
   public static Builder builder() {

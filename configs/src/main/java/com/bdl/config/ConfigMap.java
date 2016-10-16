@@ -91,8 +91,8 @@ class ConfigMap {
 
     Builder addConfigurable(ConfigSupplier configSupplier) {
       ConfigDescription description = configSupplier.getDescription();
-      configs.put(description.fullyQualifiedName(), configSupplier.getConfigurable());
-      names.put(description.name(), description.fullyQualifiedName());
+      configs.put(description.fullyQualifiedFieldName(), configSupplier.getConfigurable());
+      names.put(description.name(), description.fullyQualifiedFieldName());
       return this;
     }
 

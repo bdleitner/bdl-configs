@@ -104,7 +104,7 @@ class DaggerModuleFileWriterVisitor implements ConfigPackageTree.Visitor<String>
     } else {
       writeLine(writer, "@Module(includes = {%s})",
           childPackages.stream()
-              .map((input) -> String.format("%s.ConfigDaggerModule", input))
+              .map((input) -> String.format("%s.ConfigDaggerModule.class", input))
               .sorted()
               .collect(Collectors.joining(", ")));
     }

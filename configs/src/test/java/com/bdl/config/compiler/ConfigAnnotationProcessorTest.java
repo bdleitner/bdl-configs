@@ -48,17 +48,41 @@ public class ConfigAnnotationProcessorTest {
     assertThat(target.configValue).isEqualTo("foo");
   }
 
+  @Test
+  public void testNestedSubpackageInjection_dagger() throws Exception {
+    ConfigComponent configComponent = DaggerConfigAnnotationProcessorTest_ConfigComponent.builder()
+        .mainConfigDaggerModule(MainConfigDaggerModule.forArguments("--here_is_a_config=foo"))
+        .build();
+    Configuration configs = configComponent.getConfigs();
+    assertThat(configs.get("deep_nested_private")).isEqualTo("foo");
+    assertThat(configs.get("deep_nested_package")).isEqualTo("foo");
+    assertThat(configs.get("deep_nested_public")).isEqualTo("foo");
+  }
+
+  @Test
+  public void testNestedSubpackageInjection_guice() throws Exception {
+    Injector injector = Guice.createInjector(
+        MainConfigGuiceModule.forArguments("--here_is_a_config=foo"),
+        new ConfigGuiceModule());
+    Configuration configs = injector.getInstance(Configuration.class);
+    assertThat(configs.get("deep_nested_private")).isEqualTo("foo");
+    assertThat(configs.get("deep_nested_package")).isEqualTo("foo");
+    assertThat(configs.get("deep_nested_public")).isEqualTo("foo");
+  }
+
   static class InjectionTarget {
     private final String configValue;
 
     @Inject
     InjectionTarget(@ConfigValue("here_is_a_config") String configValue) {
-
       this.configValue = configValue;
     }
   }
 
-  @Component(modules = {MainConfigDaggerModule.class, ConfigDaggerModule.class})
+  @Component(modules = {
+      MainConfigDaggerModule.class,
+      ConfigDaggerModule.class
+  })
   @Singleton
   interface ConfigComponent {
     Configuration getConfigs();

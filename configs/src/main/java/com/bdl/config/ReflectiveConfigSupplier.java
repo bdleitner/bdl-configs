@@ -48,7 +48,7 @@ class ReflectiveConfigSupplier extends ConfigSupplier {
   Configurable<?> getConfigurable() {
     if (config == null) {
       try {
-        Class<?> clazz = loadClass(description.className());
+        Class<?> clazz = loadClass(description.fullyQualifiedClassName());
         Field field = clazz.getDeclaredField(description.fieldName());
         field.setAccessible(true);
         config = (Configurable<?>) field.get(null);

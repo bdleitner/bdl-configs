@@ -9,7 +9,7 @@ import dagger.Provides;
 import dagger.multibindings.IntoSet;
 
 /** Dagger module for binding configs in the com.bdl.config package. */
-@Module(includes = {com.bdl.config.others.ConfigDaggerModule, com.bdl.config.things.ConfigDaggerModule})
+@Module(includes = {com.bdl.config.others.ConfigDaggerModule.class, com.bdl.config.things.ConfigDaggerModule.class})
 public class ConfigDaggerModule {
 
   /** Adds a ConfigSupplier for config otherFlag1 (OtherThingA.otherFlag1) to the set multibinder. */

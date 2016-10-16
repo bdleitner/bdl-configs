@@ -19,6 +19,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import javax.inject.Qualifier;
+import javax.lang.model.element.TypeElement;
 import javax.lang.model.util.Elements;
 
 /**
@@ -90,8 +91,14 @@ abstract class ConfigMetadata implements Comparable<ConfigMetadata>, UsesTypes {
         continue;
       }
 
-      ClassMetadata annotationClazz = ClassMetadata.fromElement(elements.getTypeElement(
-          annotationType.toString(Imports.empty())));
+      String annotationTypeName = String.format("%s%s%s",
+          annotationType.packagePrefix(),
+          annotationType.nestingPrefix(),
+          annotationType.name());
+      System.out.printf("Annotation Type Name: %s\n", annotationTypeName);
+      TypeElement annotationTypeElement = elements.getTypeElement(annotationTypeName);
+      System.out.printf("Annotation Type Element: %s\n", annotationTypeElement);
+      ClassMetadata annotationClazz = ClassMetadata.fromElement(annotationTypeElement);
       for (AnnotationMetadata metaAnnotation : annotationClazz.annotations()) {
         if (metaAnnotation.type().equals(QUALIFIER_TYPE)) {
           Preconditions.checkArgument(!foundQualifier,

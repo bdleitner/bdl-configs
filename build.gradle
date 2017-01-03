@@ -12,17 +12,19 @@ buildscript {
 }
 
 allprojects {
-    group 'com.bdl'
+    group 'com.bdl.config'
     version '1.0-SNAPSHOT'
 }
 
 subprojects {
     repositories {
+        mavenLocal()
         mavenCentral()
         jcenter()
         maven { url "https://jitpack.io" }
     }
 
+    apply plugin: 'maven'
     apply plugin: 'java'
     apply plugin: 'idea'
     apply plugin: 'net.ltgt.apt'

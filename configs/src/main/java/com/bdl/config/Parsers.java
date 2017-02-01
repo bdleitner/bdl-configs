@@ -16,54 +16,59 @@ class Parsers {
     // container class, no instantiation.
   }
 
-  public static final Function<String, Boolean> BOOLEAN_PARSER = new Function<String, Boolean>() {
-    @Override
-    public Boolean apply(String input) {
-      String lower = input.toLowerCase();
-      return lower.startsWith("t")
-          || lower.startsWith("y")
-          || lower.startsWith("1");
-    }
-  };
+  public static final Function<String, Boolean> BOOLEAN_PARSER =
+      new Function<String, Boolean>() {
+        @Override
+        public Boolean apply(String input) {
+          String lower = input.toLowerCase();
+          return lower.startsWith("t") || lower.startsWith("y") || lower.startsWith("1");
+        }
+      };
 
-  public static final Function<String, Integer> INTEGER_PARSER = new Function<String, Integer>() {
-    @Override
-    public Integer apply(String input) {
-      return Integer.parseInt(input);
-    }
-  };
+  public static final Function<String, Integer> INTEGER_PARSER =
+      new Function<String, Integer>() {
+        @Override
+        public Integer apply(String input) {
+          return Integer.parseInt(input);
+        }
+      };
 
-  public static final Function<String, Long> LONG_PARSER = new Function<String, Long>() {
-    @Override
-    public Long apply(String input) {
-      return Long.parseLong(input);
-    }
-  };
+  public static final Function<String, Long> LONG_PARSER =
+      new Function<String, Long>() {
+        @Override
+        public Long apply(String input) {
+          return Long.parseLong(input);
+        }
+      };
 
-  public static final Function<String, Double> DOUBLE_PARSER = new Function<String, Double>() {
-    @Override
-    public Double apply(String input) {
-      return Double.parseDouble(input);
-    }
-  };
+  public static final Function<String, Double> DOUBLE_PARSER =
+      new Function<String, Double>() {
+        @Override
+        public Double apply(String input) {
+          return Double.parseDouble(input);
+        }
+      };
 
-  public static final Function<String, String> STRING_PARSER = new Function<String, String>() {
-    @Override
-    public String apply(String input) {
-      return input;
-    }
-  };
+  public static final Function<String, String> STRING_PARSER =
+      new Function<String, String>() {
+        @Override
+        public String apply(String input) {
+          return input;
+        }
+      };
 
-  public static final Function<String, Class<?>> CLASS_PARSER = new Function<String, Class<?>>() {
-    @Override
-    public Class<?> apply(String input) {
-      try {
-        return Class.forName(input);
-      } catch (ClassNotFoundException ex) {
-        throw new IllegalStateException(String.format("Could not load class object for value %s", input), ex);
-      }
-    }
-  };
+  public static final Function<String, Class<?>> CLASS_PARSER =
+      new Function<String, Class<?>>() {
+        @Override
+        public Class<?> apply(String input) {
+          try {
+            return Class.forName(input);
+          } catch (ClassNotFoundException ex) {
+            throw new IllegalStateException(
+                String.format("Could not load class object for value %s", input), ex);
+          }
+        }
+      };
 
   /** A parser for enum types */
   private static class EnumParser<T extends Enum> implements Function<String, T> {
@@ -73,7 +78,7 @@ class Parsers {
       this.clazz = clazz;
     }
 
-    @SuppressWarnings({ "unchecked", "RedundantCast" }) // Should throw if not a match.
+    @SuppressWarnings({"unchecked", "RedundantCast"}) // Should throw if not a match.
     @Override
     public T apply(String input) {
       return (T) Enum.valueOf(clazz, input.toUpperCase());
@@ -97,5 +102,4 @@ class Parsers {
     }
     return (Function<String, T>) PARSER_MAP.get(clazz);
   }
-
 }

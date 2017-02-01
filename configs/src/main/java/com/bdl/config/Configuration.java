@@ -22,7 +22,9 @@ public class Configuration {
     this.configs = configs;
   }
 
-  /** Disables config state checking when attempting to set a config value. Useful for writing tests. */
+  /**
+   * Disables config state checking when attempting to set a config value. Useful for writing tests.
+   */
   public static void disableConfigSetCheck() {
     STATE_CHECKING_DISABLED.set(true);
   }
@@ -41,10 +43,12 @@ public class Configuration {
    * Obtain the current configurable value by name.
    *
    * @throws ConfigException if an error occurs:
-   * <ul>
-   *   <li> {@link ConfigException.UnrecognizedConfigException} if no configurable matches the given name.</li>
-   *   <li> {@link ConfigException.AmbiguousConfigException} if more than one configurable matches the given name.</li>
-   * </ul>
+   *     <ul>
+   *     <li> {@link ConfigException.UnrecognizedConfigException} if no configurable matches the
+   *         given name.
+   *     <li> {@link ConfigException.AmbiguousConfigException} if more than one configurable matches
+   *         the given name.
+   *     </ul>
    */
   public Object get(String name) throws ConfigException {
     return configs.getOrThrow(name).get();
@@ -54,12 +58,16 @@ public class Configuration {
    * Updates the configurable identified with the given name to the given value.
    *
    * @throws ConfigException if an error occurs:
-   * <ul>
-   *   <li> {@link ConfigException.UnrecognizedConfigException} if no configurable matches the given name.</li>
-   *   <li> {@link ConfigException.AmbiguousConfigException} if more than one configurable matches the given name.</li>
-   *   <li> {@link ConfigException.TypeMismatchException} if the given value does not have the correct type.</li>
-   *   <li> {@link ConfigException.IllegalConfigStateException} if the configurable is not in a writable state.</li>
-   * </ul>
+   *     <ul>
+   *     <li> {@link ConfigException.UnrecognizedConfigException} if no configurable matches the
+   *         given name.
+   *     <li> {@link ConfigException.AmbiguousConfigException} if more than one configurable matches
+   *         the given name.
+   *     <li> {@link ConfigException.TypeMismatchException} if the given value does not have the
+   *         correct type.
+   *     <li> {@link ConfigException.IllegalConfigStateException} if the configurable is not in a
+   *         writable state.
+   *     </ul>
    */
   @SuppressWarnings("unchecked") // If types don't match, a ConfigException is thrown.
   public <T, S extends T> T update(String name, S newValue) throws ConfigException {
@@ -72,12 +80,16 @@ public class Configuration {
    *
    * @return the old value
    * @throws ConfigException if an error occurs:
-   * <ul>
-   *   <li> {@link ConfigException.UnrecognizedConfigException} if no configurable matches the given name.</li>
-   *   <li> {@link ConfigException.AmbiguousConfigException} if more than one configurable matches the given name.</li>
-   *   <li> {@link ConfigException.TypeMismatchException} if the given value does not have the correct type.</li>
-   *   <li> {@link ConfigException.IllegalConfigStateException} if the configurable is not in a writable state.</li>
-   * </ul>
+   *     <ul>
+   *     <li> {@link ConfigException.UnrecognizedConfigException} if no configurable matches the
+   *         given name.
+   *     <li> {@link ConfigException.AmbiguousConfigException} if more than one configurable matches
+   *         the given name.
+   *     <li> {@link ConfigException.TypeMismatchException} if the given value does not have the
+   *         correct type.
+   *     <li> {@link ConfigException.IllegalConfigStateException} if the configurable is not in a
+   *         writable state.
+   *     </ul>
    */
   public Object updateAsString(String name, String newValueAsString) throws ConfigException {
     return configs.getOrThrow(name).setFromString(newValueAsString);
@@ -87,11 +99,14 @@ public class Configuration {
    * Resets the configurable with the given name to its default value.
    *
    * @throws ConfigException if an error occurs:
-   * <ul>
-   *   <li> {@link ConfigException.UnrecognizedConfigException} if no configurable matches the given name.</li>
-   *   <li> {@link ConfigException.AmbiguousConfigException} if more than one configurable matches the given name.</li>
-   *   <li> {@link ConfigException.IllegalConfigStateException} if the configurable is not in a writable state.</li>
-   * </ul>
+   *     <ul>
+   *     <li> {@link ConfigException.UnrecognizedConfigException} if no configurable matches the
+   *         given name.
+   *     <li> {@link ConfigException.AmbiguousConfigException} if more than one configurable matches
+   *         the given name.
+   *     <li> {@link ConfigException.IllegalConfigStateException} if the configurable is not in a
+   *         writable state.
+   *     </ul>
    */
   public Object reset(String name) throws ConfigException {
     return configs.getOrThrow(name).reset();
@@ -117,37 +132,41 @@ public class Configuration {
    * @param name the name of the config to which to attach the listener.
    * @param listener the listener to attach.
    * @throws ConfigException if an error occurs:
-   * <ul>
-   *   <li>{@link ConfigException.UnrecognizedConfigException} if no configurable matches the given name.</li>
-   *   <li>{@link ConfigException.AmbiguousConfigException} if more than one configurable matches the given name.</li>
-   *   <li>{@link ConfigException.TypeMismatchException} if there is a mismatch between configurable and listener types.</li>
-   * </ul>
+   *     <ul>
+   *     <li>{@link ConfigException.UnrecognizedConfigException} if no configurable matches the
+   *         given name.
+   *     <li>{@link ConfigException.AmbiguousConfigException} if more than one configurable matches
+   *         the given name.
+   *     <li>{@link ConfigException.TypeMismatchException} if there is a mismatch between
+   *         configurable and listener types.
+   *     </ul>
    */
-  public <T> ConfigChangeListener.ListenerRegistration registerListener(String name, ConfigChangeListener<T> listener)
-      throws ConfigException {
+  public <T> ConfigChangeListener.ListenerRegistration registerListener(
+      String name, ConfigChangeListener<T> listener) throws ConfigException {
     return registerListener(name, listener, false);
   }
 
   /**
    * Registers a listener to the configuration with the given name.
-   * <p>
-   * Note, no type-checking is performed here, so it is possible to register a listener to a configurable of a
-   * non-matching type.  This could cause exceptions down the road.
+   *
+   * <p>Note, no type-checking is performed here, so it is possible to register a listener to a
+   * configurable of a non-matching type. This could cause exceptions down the road.
    *
    * @param name the name of the config to which to attach the listener.
    * @param listener the listener to attach.
-   * @param listen if {@code true} an {@link ConfigChangeListener#onConfigurationChange(Object)} message is sent
-   *               immediately with the configuration's current value.
+   * @param listen if {@code true} an {@link ConfigChangeListener#onConfigurationChange(Object)}
+   *     message is sent immediately with the configuration's current value.
    * @throws ConfigException if an error occurs:
-   * <ul>
-   *   <li>{@link ConfigException.UnrecognizedConfigException} if no configurable matches the given name.</li>
-   *   <li>{@link ConfigException.AmbiguousConfigException} if more than one configurable matches the given name.</li>
-   * </ul>
+   *     <ul>
+   *     <li>{@link ConfigException.UnrecognizedConfigException} if no configurable matches the
+   *         given name.
+   *     <li>{@link ConfigException.AmbiguousConfigException} if more than one configurable matches
+   *         the given name.
+   *     </ul>
    */
   @SuppressWarnings("unchecked") // Can't stop it here, but may cause exceptions elsewhere.
   public <T> ConfigChangeListener.ListenerRegistration registerListener(
-      String name, ConfigChangeListener<T> listener, boolean listen)
-      throws ConfigException {
+      String name, ConfigChangeListener<T> listener, boolean listen) throws ConfigException {
     return ((Configurable<T>) configs.getOrThrow(name)).registerListener(listener, listen);
   }
 

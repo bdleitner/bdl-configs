@@ -71,9 +71,11 @@ class ConfigProcessor {
           loadedNewConfigs = true;
           configNamesToValues.remove(loader.getExternalConfigName());
           try {
-            addConfigsToMap(configNamesToValues, nonConfigArgs, loader.getConfigArgs(externalConfigValue));
+            addConfigsToMap(
+                configNamesToValues, nonConfigArgs, loader.getConfigArgs(externalConfigValue));
           } catch (Exception ex) {
-            throw new ExternalConfigLoadException("Unable to load configs from external source.", ex)
+            throw new ExternalConfigLoadException(
+                    "Unable to load configs from external source.", ex)
                 .wrap();
           }
         }
@@ -83,10 +85,10 @@ class ConfigProcessor {
   }
 
   /**
-   * Iterates through the args, building a map of config names to values. Any args that do not match the config pattern
-   * are bypassed and added to the nonConfigArgs list.
-   * <p>
-   * If the argument "--" is encountered, all further arguments are assumed to be non-configs.
+   * Iterates through the args, building a map of config names to values. Any args that do not match
+   * the config pattern are bypassed and added to the nonConfigArgs list.
+   *
+   * <p>If the argument "--" is encountered, all further arguments are assumed to be non-configs.
    */
   private void addConfigsToMap(
       Map<String, String> configNamesToValues,
@@ -129,7 +131,7 @@ class ConfigProcessor {
 
     if (!unrecognizedConfigs.isEmpty()) {
       throw new UnrecognizedConfigException(
-          unrecognizedConfigs.toArray(new String[unrecognizedConfigs.size()]))
+              unrecognizedConfigs.toArray(new String[unrecognizedConfigs.size()]))
           .wrap();
     }
   }
@@ -140,7 +142,9 @@ class ConfigProcessor {
     Configurable<?> config = configMap.getOrNull(configName);
 
     // If we don't find the config, check and see if the name is no[config_name].
-    if (config == null && valueString == null && configName.startsWith(FALSE_BOOLEAN_CONFIG_PREFIX)) {
+    if (config == null
+        && valueString == null
+        && configName.startsWith(FALSE_BOOLEAN_CONFIG_PREFIX)) {
       configName = configName.substring(FALSE_BOOLEAN_CONFIG_PREFIX.length());
       valueString = FALSE_BOOLEAN_CONFIG_VALUE;
       config = configMap.getOrNull(configName);

@@ -88,7 +88,8 @@ abstract class ConfigMetadata implements Comparable<ConfigMetadata>, UsesTypes {
         fullyQualifiedPathName(), that.fullyQualifiedPathName());
   }
 
-  static ConfigMetadata from(Elements elements, FieldMetadata field, FieldInitializationGrabber grabber) {
+  static ConfigMetadata from(
+      Elements elements, FieldMetadata field, FieldInitializationGrabber grabber) {
     Builder config = ConfigMetadata.builder().field(field);
     boolean foundQualifier = false;
     boolean foundBindingAnnotation = false;

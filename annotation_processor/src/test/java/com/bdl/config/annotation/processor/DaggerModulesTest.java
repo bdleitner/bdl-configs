@@ -158,8 +158,11 @@ public class DaggerModulesTest {
 
     tree.visit(daggerVisitor);
     for (Map.Entry<String, Writer> entry : writerMap.entrySet()) {
-      URL resource = Preconditions.checkNotNull(getClass().getClassLoader().getResource(entry.getKey()),
-          "Unable to locate resource: %s", entry.getKey());
+      URL resource =
+          Preconditions.checkNotNull(
+              getClass().getClassLoader().getResource(entry.getKey()),
+              "Unable to locate resource: %s",
+              entry.getKey());
       String file = Resources.toString(resource, Charsets.UTF_8);
       assertWithMessage(String.format("file: %s", entry.getKey()))
           .that(entry.getValue().toString())
@@ -230,8 +233,11 @@ public class DaggerModulesTest {
             "com.bdl.config.alllocal.sub2.sub.ConfigDaggerModule.txt");
 
     for (Map.Entry<String, Writer> entry : writerMap.entrySet()) {
-      URL resource = Preconditions.checkNotNull(getClass().getClassLoader().getResource(entry.getKey()),
-          "Unable to locate resource: %s", entry.getKey());
+      URL resource =
+          Preconditions.checkNotNull(
+              getClass().getClassLoader().getResource(entry.getKey()),
+              "Unable to locate resource: %s",
+              entry.getKey());
       String file = Resources.toString(resource, Charsets.UTF_8);
 
       assertWithMessage(String.format("file: %s", entry.getKey()))

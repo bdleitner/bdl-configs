@@ -14,9 +14,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-/**
- * @author Benjamin Leitner
- */
+/** @author Benjamin Leitner */
 @RunWith(JUnit4.class)
 public class ConfigurationTest {
 
@@ -75,15 +73,17 @@ public class ConfigurationTest {
 
   @Test
   public void testPredicates() {
-    Configurable<Integer> configurable = Configurable.<Integer>builder()
-        .withDefaultValue(2)
-        .withPredicate(new Predicate<Integer>() {
-          @Override
-          public boolean apply(Integer input) {
-            return input >= 0;
-          }
-        })
-        .build();
+    Configurable<Integer> configurable =
+        Configurable.<Integer>builder()
+            .withDefaultValue(2)
+            .withPredicate(
+                new Predicate<Integer>() {
+                  @Override
+                  public boolean apply(Integer input) {
+                    return input >= 0;
+                  }
+                })
+            .build();
     try {
       configurable.setFromString("-25");
       fail();
@@ -96,14 +96,16 @@ public class ConfigurationTest {
   @Test
   public void testListener() throws Exception {
     Configurable<String> foo = Configurable.value("foo");
-    ConfigMap map = new ConfigMap(
-        ImmutableMap.<String, Configurable<?>>of("foo", foo),
-        ImmutableMultimap.<String, String>of());
+    ConfigMap map =
+        new ConfigMap(
+            ImmutableMap.of("foo", foo),
+            ImmutableMultimap.of());
 
     Configuration configuration = new Configuration(map);
 
     RecordingListener<String> listener = new RecordingListener<>();
-    ConfigChangeListener.ListenerRegistration handle = configuration.registerListener("foo", listener);
+    ConfigChangeListener.ListenerRegistration handle =
+        configuration.registerListener("foo", listener);
     assertThat(listener.value).isNull();
 
     foo.setValue("bar");

@@ -26,7 +26,7 @@ public class MainConfigDaggerModule {
 
   @Qualifier
   @Retention(RetentionPolicy.RUNTIME)
-  @Target({ ElementType.METHOD, ElementType.PARAMETER})
+  @Target({ElementType.METHOD, ElementType.PARAMETER})
   @interface ForConfigArguments {}
 
   private final List<String> arguments;
@@ -37,7 +37,7 @@ public class MainConfigDaggerModule {
 
   /** Creates a new {@link MainConfigDaggerModule}. */
   public static MainConfigDaggerModule create() {
-    return forArguments(ImmutableList.<String>of());
+    return forArguments(ImmutableList.of());
   }
 
   /** Creates a new {@link MainConfigDaggerModule} using the given strings as inputs. */
@@ -69,7 +69,8 @@ public class MainConfigDaggerModule {
   }
 
   @Module
-  public static abstract class SetModule {
-    @Multibinds abstract Set<ConfigSupplier> declaresConfigSupplierSet();
+  public abstract static class SetModule {
+    @Multibinds
+    abstract Set<ConfigSupplier> declaresConfigSupplierSet();
   }
 }

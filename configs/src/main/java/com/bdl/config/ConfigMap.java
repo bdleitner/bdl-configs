@@ -17,7 +17,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Class to allow for multi-lookup of Configurables, by short name if unique or by fully qualified name.
+ * Class to allow for multi-lookup of Configurables, by short name if unique or by fully qualified
+ * name.
  *
  * @author Ben Leitner
  */
@@ -57,7 +58,10 @@ class ConfigMap {
     return ImmutableSet.copyOf(configs.values());
   }
 
-  /** Returns a set of all keys for the configurables.  The "short" names are used whenever unambiguous. */
+  /**
+   * Returns a set of all keys for the configurables. The "short" names are used whenever
+   * unambiguous.
+   */
   Set<String> allKeys() {
     ImmutableSet.Builder<String> keys = ImmutableSet.builder();
     Set<String> unneeded = Sets.newHashSet();

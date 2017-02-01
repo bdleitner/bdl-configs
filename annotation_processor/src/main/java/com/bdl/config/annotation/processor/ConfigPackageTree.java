@@ -20,7 +20,7 @@ import javax.tools.Diagnostic;
  */
 class ConfigPackageTree {
 
-  /** Interface for classes that visit the nodes and act on the configs.*/
+  /** Interface for classes that visit the nodes and act on the configs. */
   interface Visitor<T> {
     /** Called upon visiting a node. */
     Set<T> visit(Set<T> childOutputs, String packageName, Set<ConfigMetadata> configs);
@@ -74,10 +74,13 @@ class ConfigPackageTree {
       return child;
     }
 
-    private void addConfigToPackage(Messager messager, String packageNameTail, ConfigMetadata config) {
+    private void addConfigToPackage(
+        Messager messager, String packageNameTail, ConfigMetadata config) {
       if (packageNameTail.isEmpty()) {
-        messager.printMessage(Diagnostic.Kind.NOTE,
-            String.format("Adding %s config %s to package %s.",
+        messager.printMessage(
+            Diagnostic.Kind.NOTE,
+            String.format(
+                "Adding %s config %s to package %s.",
                 config.field().visibility(), config.fullyQualifiedPathName(), this.packageName));
         configs.add(config);
         return;
@@ -89,8 +92,8 @@ class ConfigPackageTree {
     /**
      * Moves any public or private configs from {@code this} node to the given node.
      *
-     * @return {@code true} if there are no more configs in this package or any subpackage, indicating that
-     * this node can be removed from its parent.
+     * @return {@code true} if there are no more configs in this package or any subpackage,
+     *     indicating that this node can be removed from its parent.
      */
     private boolean moveNonPackageConfigsTo(Node node) {
       boolean canRemoveMe = true;
@@ -106,7 +109,7 @@ class ConfigPackageTree {
       if (this == node) {
         return false;
       }
-      for (Iterator<ConfigMetadata> it = configs.iterator(); it.hasNext();) {
+      for (Iterator<ConfigMetadata> it = configs.iterator(); it.hasNext(); ) {
         ConfigMetadata config = it.next();
         if (config.field().visibility() == Visibility.PUBLIC
             || config.field().visibility() == Visibility.PRIVATE) {

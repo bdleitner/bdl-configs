@@ -19,10 +19,8 @@ import java.util.regex.Pattern;
  */
 abstract class ExternalConfigLoader {
 
-  static final List<ExternalConfigLoader> LOADERS = Lists.newArrayList(
-      fromFile(),
-      fromResource(),
-      fromSystemProperties());
+  static final List<ExternalConfigLoader> LOADERS =
+      Lists.newArrayList(fromFile(), fromResource(), fromSystemProperties());
   private final String sourceConfig;
 
   protected ExternalConfigLoader(String sourceConfig) {
@@ -119,12 +117,12 @@ abstract class ExternalConfigLoader {
 
     @Override
     protected BufferedReader getReader(String resource) throws Exception {
-      InputStream resourceStream = Configuration.class.getClassLoader().getResourceAsStream(resource);
+      InputStream resourceStream =
+          Configuration.class.getClassLoader().getResourceAsStream(resource);
       if (resourceStream == null) {
         // Couldn't find the resource with this class's ClassLoader, so
         // try this thread's ContextClassLoader (if it was set).
-        ClassLoader contextClassLoader =
-            Thread.currentThread().getContextClassLoader();
+        ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
         if (contextClassLoader != null) {
           resourceStream = contextClassLoader.getResourceAsStream(resource);
         }
@@ -136,7 +134,9 @@ abstract class ExternalConfigLoader {
     }
   }
 
-  /** An extension of {@link ExternalConfigLoader} that reads config values from system properties */
+  /**
+   * An extension of {@link ExternalConfigLoader} that reads config values from system properties
+   */
   private static class SystemPropertiesExternalConfigLoader extends ExternalConfigLoader {
 
     private static final String SYSTEM_PROPERTY_CONFIG_NAME = "system_configs";

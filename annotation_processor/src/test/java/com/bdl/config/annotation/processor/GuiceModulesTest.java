@@ -4,6 +4,7 @@ import static com.bdl.annotation.processing.model.TypeMetadata.simpleTypeParam;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.io.Resources;
 
@@ -27,7 +28,8 @@ import java.util.Map;
 import javax.annotation.processing.Messager;
 
 /**
- * Tests for the combined functionality of {@link ConfigPackageTree} and {@link DaggerModuleFileWriterVisitor}.
+ * Tests for the combined functionality of {@link ConfigPackageTree} and {@link
+ * DaggerModuleFileWriterVisitor}.
  *
  * @author Ben Leitner
  */
@@ -43,94 +45,96 @@ public class GuiceModulesTest {
     tree.addConfig(
         DO_NOTHING_MESSAGER,
         ConfigMetadata.builder()
-            .field(FieldMetadata.builder()
-                .containingClass(TypeMetadata.builder()
-                    .setPackageName("com.bdl.config.things")
-                    .setName("Thing1")
-                    .addParam(simpleTypeParam("T"))
+            .field(
+                FieldMetadata.builder()
+                    .containingClass(
+                        TypeMetadata.builder()
+                            .setPackageName("com.bdl.config.things")
+                            .setName("Thing1")
+                            .addParam(simpleTypeParam("T"))
+                            .build())
+                    .name("flag1")
+                    .type(TypeUtils.configOf(TypeMetadata.STRING))
+                    .visibility(Visibility.PACKAGE_LOCAL)
                     .build())
-                .name("flag1")
-                .type(TypeUtils.configOf(TypeMetadata.STRING))
-                .visibility(Visibility.PACKAGE_LOCAL)
-                .build())
-            .configAnnotation(AnnotationMetadata.builder()
-                .setType(CONFIG_TYPE)
-                .build())
+            .configAnnotation(AnnotationMetadata.builder().setType(CONFIG_TYPE).build())
             .hasDefault(true)
             .build());
     tree.addConfig(
         DO_NOTHING_MESSAGER,
         ConfigMetadata.builder()
-            .field(FieldMetadata.builder()
-                .containingClass(TypeMetadata.builder()
-                    .setPackageName("com.bdl.config.things")
-                    .setName("Thing2")
+            .field(
+                FieldMetadata.builder()
+                    .containingClass(
+                        TypeMetadata.builder()
+                            .setPackageName("com.bdl.config.things")
+                            .setName("Thing2")
+                            .build())
+                    .name("flag2")
+                    .type(TypeUtils.configOf(TypeMetadata.STRING))
+                    .visibility(Visibility.PUBLIC)
                     .build())
-                .name("flag2")
-                .type(TypeUtils.configOf(TypeMetadata.STRING))
-                .visibility(Visibility.PUBLIC)
-                .build())
-            .configAnnotation(AnnotationMetadata.builder()
-                .setType(CONFIG_TYPE)
-                .build())
-            .bindingAnnotation(AnnotationMetadata.builder()
-                .setType(TypeMetadata.from(Annotations.DummyBindingAnnotation.class))
-                .putValue("value", ValueMetadata.create("flag2"))
-                .build())
+            .configAnnotation(AnnotationMetadata.builder().setType(CONFIG_TYPE).build())
+            .bindingAnnotation(
+                AnnotationMetadata.builder()
+                    .setType(TypeMetadata.from(Annotations.DummyBindingAnnotation.class))
+                    .putValue("value", ValueMetadata.create("flag2"))
+                    .build())
             .hasDefault(false)
             .build());
     tree.addConfig(
         DO_NOTHING_MESSAGER,
         ConfigMetadata.builder()
-            .field(FieldMetadata.builder()
-                .containingClass(TypeMetadata.builder()
-                    .setPackageName("com.bdl.config.others")
-                    .setName("OtherThingA")
+            .field(
+                FieldMetadata.builder()
+                    .containingClass(
+                        TypeMetadata.builder()
+                            .setPackageName("com.bdl.config.others")
+                            .setName("OtherThingA")
+                            .build())
+                    .name("otherFlag1")
+                    .type(TypeUtils.configOf(TypeMetadata.STRING))
+                    .visibility(Visibility.PUBLIC)
                     .build())
-                .name("otherFlag1")
-                .type(TypeUtils.configOf(TypeMetadata.STRING))
-                .visibility(Visibility.PUBLIC)
-                .build())
-            .configAnnotation(AnnotationMetadata.builder()
-                .setType(CONFIG_TYPE)
-                .build())
+            .configAnnotation(AnnotationMetadata.builder().setType(CONFIG_TYPE).build())
             .hasDefault(true)
             .build());
     tree.addConfig(
         DO_NOTHING_MESSAGER,
         ConfigMetadata.builder()
-            .field(FieldMetadata.builder()
-                .containingClass(TypeMetadata.builder()
-                    .setPackageName("com.bdl.config.others")
-                    .setName("OtherThingA")
+            .field(
+                FieldMetadata.builder()
+                    .containingClass(
+                        TypeMetadata.builder()
+                            .setPackageName("com.bdl.config.others")
+                            .setName("OtherThingA")
+                            .build())
+                    .name("otherFlag2")
+                    .type(TypeUtils.configOf(TypeMetadata.STRING))
+                    .visibility(Visibility.PRIVATE)
                     .build())
-                .name("otherFlag2")
-                .type(TypeUtils.configOf(TypeMetadata.STRING))
-                .visibility(Visibility.PRIVATE)
-                .build())
-            .configAnnotation(AnnotationMetadata.builder()
-                .setType(CONFIG_TYPE)
-                .build())
+            .configAnnotation(AnnotationMetadata.builder().setType(CONFIG_TYPE).build())
             .hasDefault(true)
             .build());
     tree.addConfig(
         DO_NOTHING_MESSAGER,
         ConfigMetadata.builder()
-            .field(FieldMetadata.builder()
-                .containingClass(TypeMetadata.builder()
-                    .setPackageName("com.bdl.config.others")
-                    .setName("OtherThingA")
+            .field(
+                FieldMetadata.builder()
+                    .containingClass(
+                        TypeMetadata.builder()
+                            .setPackageName("com.bdl.config.others")
+                            .setName("OtherThingA")
+                            .build())
+                    .name("otherFlag3")
+                    .type(TypeUtils.configOf(TypeMetadata.STRING))
+                    .visibility(Visibility.PACKAGE_LOCAL)
                     .build())
-                .name("otherFlag3")
-                .type(TypeUtils.configOf(TypeMetadata.STRING))
-                .visibility(Visibility.PACKAGE_LOCAL)
-                .build())
-            .configAnnotation(AnnotationMetadata.builder()
-                .setType(CONFIG_TYPE)
-                .build())
-            .bindingAnnotation(AnnotationMetadata.builder()
-                .setType(TypeMetadata.from(Annotations.DummyBindingAnnotation.class))
-                .build())
+            .configAnnotation(AnnotationMetadata.builder().setType(CONFIG_TYPE).build())
+            .bindingAnnotation(
+                AnnotationMetadata.builder()
+                    .setType(TypeMetadata.from(Annotations.DummyBindingAnnotation.class))
+                    .build())
             .hasDefault(true)
             .build());
 
@@ -138,26 +142,29 @@ public class GuiceModulesTest {
 
     final Map<String, Writer> writerMap = Maps.newHashMap();
 
-    GuiceModuleFileWriterVisitor guiceVisitor = new GuiceModuleFileWriterVisitor(
-        DO_NOTHING_MESSAGER, input -> {
-          StringWriter writer = new StringWriter();
-          writerMap.put(input, writer);
-          return writer;
-        });
+    GuiceModuleFileWriterVisitor guiceVisitor =
+        new GuiceModuleFileWriterVisitor(
+            DO_NOTHING_MESSAGER,
+            input -> {
+              StringWriter writer = new StringWriter();
+              writerMap.put(input, writer);
+              return writer;
+            });
 
     tree.visit(guiceVisitor);
     for (Map.Entry<String, Writer> entry : writerMap.entrySet()) {
-      URL resource = getClass().getClassLoader().getResource(entry.getKey() + ".txt");
+      URL resource = Preconditions.checkNotNull(
+          getClass().getClassLoader().getResource(entry.getKey() + ".txt"),
+          "Could not find resource %s", entry.getKey());
       String file = Resources.toString(resource, Charsets.UTF_8);
 
-      assertThat(entry.getValue().toString())
-          .isEqualTo(file);
+      assertThat(entry.getValue().toString()).isEqualTo(file);
     }
   }
 
   /**
-   * Tests that a module will be written to include submodules in different subpackages even when no configs
-   * are present in the common-prefix package.
+   * Tests that a module will be written to include submodules in different subpackages even when no
+   * configs are present in the common-prefix package.
    */
   @Test
   public void testWriteModulesAtJoinNodes() throws Exception {
@@ -165,35 +172,35 @@ public class GuiceModulesTest {
     tree.addConfig(
         DO_NOTHING_MESSAGER,
         ConfigMetadata.builder()
-            .field(FieldMetadata.builder()
-                .containingClass(TypeMetadata.builder()
-                    .setPackageName("com.bdl.config.alllocal.sub1")
-                    .setName("Local")
+            .field(
+                FieldMetadata.builder()
+                    .containingClass(
+                        TypeMetadata.builder()
+                            .setPackageName("com.bdl.config.alllocal.sub1")
+                            .setName("Local")
+                            .build())
+                    .type(TypeUtils.configOf(TypeMetadata.BOXED_INTEGER))
+                    .visibility(Visibility.PACKAGE_LOCAL)
+                    .name("sub1")
                     .build())
-                .type(TypeUtils.configOf(TypeMetadata.BOXED_INTEGER))
-                .visibility(Visibility.PACKAGE_LOCAL)
-                .name("sub1")
-                .build())
-            .configAnnotation(AnnotationMetadata.builder()
-                .setType(CONFIG_TYPE)
-                .build())
+            .configAnnotation(AnnotationMetadata.builder().setType(CONFIG_TYPE).build())
             .hasDefault(true)
             .build());
     tree.addConfig(
         DO_NOTHING_MESSAGER,
         ConfigMetadata.builder()
-            .field(FieldMetadata.builder()
-                .containingClass(TypeMetadata.builder()
-                    .setPackageName("com.bdl.config.alllocal.sub2.sub")
-                    .setName("Local")
+            .field(
+                FieldMetadata.builder()
+                    .containingClass(
+                        TypeMetadata.builder()
+                            .setPackageName("com.bdl.config.alllocal.sub2.sub")
+                            .setName("Local")
+                            .build())
+                    .name("sub2")
+                    .type(TypeUtils.configOf(TypeMetadata.STRING))
+                    .visibility(Visibility.PACKAGE_LOCAL)
                     .build())
-                .name("sub2")
-                .type(TypeUtils.configOf(TypeMetadata.STRING))
-                .visibility(Visibility.PACKAGE_LOCAL)
-                .build())
-            .configAnnotation(AnnotationMetadata.builder()
-                .setType(CONFIG_TYPE)
-                .build())
+            .configAnnotation(AnnotationMetadata.builder().setType(CONFIG_TYPE).build())
             .hasDefault(true)
             .build());
 
@@ -201,21 +208,26 @@ public class GuiceModulesTest {
 
     final Map<String, Writer> writerMap = Maps.newHashMap();
 
-    GuiceModuleFileWriterVisitor daggerVisitor = new GuiceModuleFileWriterVisitor(
-        DO_NOTHING_MESSAGER, input -> {
-          StringWriter writer = new StringWriter();
-          writerMap.put(input + ".txt", writer);
-          return writer;
-        });
+    GuiceModuleFileWriterVisitor daggerVisitor =
+        new GuiceModuleFileWriterVisitor(
+            DO_NOTHING_MESSAGER,
+            input -> {
+              StringWriter writer = new StringWriter();
+              writerMap.put(input + ".txt", writer);
+              return writer;
+            });
 
     tree.visit(daggerVisitor);
-    assertThat(writerMap.keySet()).containsExactly(
-        "com.bdl.config.alllocal.ConfigGuiceModule.txt",
-        "com.bdl.config.alllocal.sub1.ConfigGuiceModule.txt",
-        "com.bdl.config.alllocal.sub2.sub.ConfigGuiceModule.txt");
+    assertThat(writerMap.keySet())
+        .containsExactly(
+            "com.bdl.config.alllocal.ConfigGuiceModule.txt",
+            "com.bdl.config.alllocal.sub1.ConfigGuiceModule.txt",
+            "com.bdl.config.alllocal.sub2.sub.ConfigGuiceModule.txt");
 
     for (Map.Entry<String, Writer> entry : writerMap.entrySet()) {
-      URL resource = getClass().getClassLoader().getResource(entry.getKey());
+      URL resource = Preconditions.checkNotNull(
+          getClass().getClassLoader().getResource(entry.getKey()),
+          "Could not find resource %s", entry.getKey());
       String file = Resources.toString(resource, Charsets.UTF_8);
 
       assertThat(entry.getValue().toString()).isEqualTo(file);

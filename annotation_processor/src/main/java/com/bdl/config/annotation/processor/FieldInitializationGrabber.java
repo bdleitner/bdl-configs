@@ -33,7 +33,8 @@ class FieldInitializationGrabber {
   String findInitializer(FieldMetadata field) {
     TypeElement typeElement = elements.getTypeElement(field.containingClass().toString());
     for (Element element : typeElement.getEnclosedElements()) {
-      if (element.getKind() == ElementKind.FIELD && element.getSimpleName().toString().equals(field.name())) {
+      if (element.getKind() == ElementKind.FIELD
+          && element.getSimpleName().toString().equals(field.name())) {
         VariableTree tree = new FieldScanner().scan(element, trees);
         return tree.getInitializer().toString();
       }

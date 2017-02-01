@@ -18,5 +18,4 @@ public class ConfigRuntimeException extends RuntimeException {
   public ConfigException unwrap() {
     return ((ConfigException) getCause());
   }
-
 }

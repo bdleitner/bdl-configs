@@ -29,7 +29,7 @@ public class Annotations {
   /** Dummy Qualifier annotation for use in tests. */
   @Qualifier
   @Retention(RetentionPolicy.RUNTIME)
-  @Target({ ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER})
+  @Target({ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER})
   public @interface DummyQualifier {
     String value() default "";
   }
@@ -37,7 +37,7 @@ public class Annotations {
   /** Dummy BindingAnnotation annotation for use in tests. */
   @BindingAnnotation
   @Retention(RetentionPolicy.RUNTIME)
-  @Target({ ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER})
+  @Target({ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER})
   public @interface DummyBindingAnnotation {
     String value() default "";
   }
@@ -61,8 +61,8 @@ public class Annotations {
   }
 
   public static AnnotationMetadata configMetadata(@Nullable String name, @Nullable String desc) {
-    AnnotationMetadata.Builder annotation = AnnotationMetadata.builder()
-        .setType(TypeMetadata.from(Config.class));
+    AnnotationMetadata.Builder annotation =
+        AnnotationMetadata.builder().setType(TypeMetadata.from(Config.class));
     if (name != null) {
       annotation.putValue("name", ValueMetadata.create(name));
     }
@@ -73,8 +73,8 @@ public class Annotations {
   }
 
   public static AnnotationMetadata qualifierMetadata(@Nullable String value) {
-    AnnotationMetadata.Builder annotation = AnnotationMetadata.builder()
-        .setType(TypeMetadata.from(DummyQualifier.class));
+    AnnotationMetadata.Builder annotation =
+        AnnotationMetadata.builder().setType(TypeMetadata.from(DummyQualifier.class));
     if (value != null) {
       annotation.putValue("value", ValueMetadata.create(value));
     }
@@ -82,8 +82,8 @@ public class Annotations {
   }
 
   public static AnnotationMetadata bindingAnnotationMetadata(@Nullable String value) {
-    AnnotationMetadata.Builder annotation = AnnotationMetadata.builder()
-        .setType(TypeMetadata.from(DummyBindingAnnotation.class));
+    AnnotationMetadata.Builder annotation =
+        AnnotationMetadata.builder().setType(TypeMetadata.from(DummyBindingAnnotation.class));
     if (value != null) {
       annotation.putValue("value", ValueMetadata.create(value));
     }

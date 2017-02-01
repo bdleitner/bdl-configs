@@ -46,16 +46,18 @@ public class ConfigMetadataTest {
   @Before
   public void before() {
     elements = compilation.getElements();
-    when(grabber.findInitializer(isA(FieldMetadata.class))).thenAnswer(new Answer<String>() {
-      @Override
-      public String answer(InvocationOnMock invocation) throws Throwable {
-        FieldMetadata field = (FieldMetadata) invocation.getArguments()[0];
-        if (field.name().toLowerCase().contains("nodefault")) {
-          return "Configurable.noDefault(Foo.class)";
-        }
-        return "Configurable.value(\"foo\")";
-      }
-    });
+    when(grabber.findInitializer(isA(FieldMetadata.class)))
+        .thenAnswer(
+            new Answer<String>() {
+              @Override
+              public String answer(InvocationOnMock invocation) throws Throwable {
+                FieldMetadata field = (FieldMetadata) invocation.getArguments()[0];
+                if (field.name().toLowerCase().contains("nodefault")) {
+                  return "Configurable.noDefault(Foo.class)";
+                }
+                return "Configurable.value(\"foo\")";
+              }
+            });
   }
 
   private Element elementForField(String fieldName) {

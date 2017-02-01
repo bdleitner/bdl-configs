@@ -24,7 +24,7 @@ public class MainConfigGuiceModule extends AbstractModule {
 
   @BindingAnnotation
   @Retention(RetentionPolicy.RUNTIME)
-  @Target({ ElementType.METHOD, ElementType.PARAMETER})
+  @Target({ElementType.METHOD, ElementType.PARAMETER})
   @interface ForConfigArguments {}
 
   private final List<String> arguments;
@@ -40,7 +40,7 @@ public class MainConfigGuiceModule extends AbstractModule {
 
   /** Creates a new {@link MainConfigGuiceModule}. */
   public static MainConfigGuiceModule create() {
-    return forArguments(ImmutableList.<String>of());
+    return forArguments(ImmutableList.of());
   }
 
   /** Creates a new {@link MainConfigGuiceModule} using the given strings as inputs. */

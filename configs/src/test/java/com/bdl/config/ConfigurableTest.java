@@ -15,18 +15,17 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-/**
- * @author Benjamin Leitner
- */
+/** @author Benjamin Leitner */
 @RunWith(JUnit4.class)
 public class ConfigurableTest {
 
-  private static final Predicate<Integer> POSITIVE_INTEGER = new Predicate<Integer>() {
-    @Override
-    public boolean apply(Integer input) {
-      return input > 0;
-    }
-  };
+  private static final Predicate<Integer> POSITIVE_INTEGER =
+      new Predicate<Integer>() {
+        @Override
+        public boolean apply(Integer input) {
+          return input > 0;
+        }
+      };
 
   private enum TestEnum {
     FIRST,
@@ -126,15 +125,17 @@ public class ConfigurableTest {
 
   @Test
   public void testParsingError() throws Exception {
-    Configurable<String> configurable = Configurable.<String>builder()
-        .withDefaultValue("foo")
-        .withParser(new Function<String, String>() {
-          @Override
-          public String apply(String input) {
-            throw new RuntimeException("BANG!");
-          }
-        })
-        .build();
+    Configurable<String> configurable =
+        Configurable.<String>builder()
+            .withDefaultValue("foo")
+            .withParser(
+                new Function<String, String>() {
+                  @Override
+                  public String apply(String input) {
+                    throw new RuntimeException("BANG!");
+                  }
+                })
+            .build();
     try {
       configurable.setFromString("will_be_parsed");
       fail();
@@ -144,7 +145,7 @@ public class ConfigurableTest {
   }
 
   @Test
-  public void testEnumConfig()throws Exception {
+  public void testEnumConfig() throws Exception {
     Configurable<TestEnum> value = Configurable.value(TestEnum.SECOND);
     value.setFromString("THIRD");
     assertThat(value.get()).isEqualTo(TestEnum.THIRD);
@@ -152,10 +153,8 @@ public class ConfigurableTest {
 
   @Test
   public void testPredicates() throws Exception {
-    Configurable<Integer> configurable = Configurable.<Integer>builder()
-        .withDefaultValue(1)
-        .withPredicate(POSITIVE_INTEGER)
-        .build();
+    Configurable<Integer> configurable =
+        Configurable.<Integer>builder().withDefaultValue(1).withPredicate(POSITIVE_INTEGER).build();
     Configuration.disableConfigSetCheck();
     assertThat(configurable.get()).isEqualTo(1);
     try {

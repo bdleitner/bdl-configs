@@ -15,8 +15,8 @@ import java.lang.annotation.Target;
 public @interface Config {
 
   /**
-   * The (short) name of the config on the command line if it should be different from the
-   * name of the field.
+   * The (short) name of the config on the command line if it should be different from the name of
+   * the field.
    */
   String name() default "";
 

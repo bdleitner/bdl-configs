@@ -9,5 +9,4 @@ import com.bdl.auto.impl.ImplOption;
  * @author Ben Leitner
  */
 @AutoImpl(ImplOption.RETURN_DEFAULT_VALUE)
-interface Messager extends javax.annotation.processing.Messager {
-}
+interface Messager extends javax.annotation.processing.Messager {}

@@ -64,12 +64,12 @@ public final class EnhancedCompilationRule implements TestRule {
       public void evaluate() throws Throwable {
         EvaluatingProcessor evaluatingProcessor = new EvaluatingProcessor(base);
         Compilation compilation = javac().withProcessors(evaluatingProcessor).compile(DUMMY);
-//        checkState(compilation.status().equals(SUCCESS), compilation);
+        //        checkState(compilation.status().equals(SUCCESS), compilation);
         evaluatingProcessor.throwIfStatementThrew();
       }
     };
   }
-  
+
   /**
    * Returns the {@link Elements} instance associated with the current execution of the rule.
    *

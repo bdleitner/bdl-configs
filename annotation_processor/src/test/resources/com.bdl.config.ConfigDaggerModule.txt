@@ -8,6 +8,8 @@ import dagger.Module;
 import dagger.Provides;
 import dagger.multibindings.IntoSet;
 
+import javax.annotation.Nullable;
+
 /** Dagger module for binding configs in the com.bdl.config package. */
 @Module(includes = {com.bdl.config.others.ConfigDaggerModule.class, com.bdl.config.things.ConfigDaggerModule.class})
 public class ConfigDaggerModule {
@@ -76,6 +78,7 @@ public class ConfigDaggerModule {
   /** Binds the type of the config with a DummyQualifier annotation to the Configurable's value. */
   @Provides
   @DummyQualifier("flag2")
+  @Nullable
   public static String provideConfigValue_flag2(Configuration configuration) {
     try {
       return (String) configuration.get("com.bdl.config.things.Thing2.flag2");

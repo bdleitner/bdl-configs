@@ -10,8 +10,7 @@ import com.bdl.config.Configurable;
  */
 class ConfigContainer {
 
-  @Config
-  private static final Configurable<String> privateString = Configurable.flag("foo");
+  @Config private static final Configurable<String> privateString = Configurable.flag("foo");
 
   @Config(name = "specified_name")
   @Annotations.DummyQualifier("foo")
@@ -21,4 +20,8 @@ class ConfigContainer {
   @Annotations.DummyQualifier
   @Annotations.DummyBindingAnnotation("blah")
   public static final Configurable<Boolean> publicBoolean = Configurable.flag(true);
+
+  @Config
+  private static final Configurable<String> noDefaultString =
+      Configurable.noDefaultFlag(String.class);
 }

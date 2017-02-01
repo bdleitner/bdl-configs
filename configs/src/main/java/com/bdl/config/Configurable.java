@@ -35,10 +35,11 @@ public final class Configurable<T> {
   private final Set<ConfigChangeListener<T>> listeners;
 
   /**
-   * The current value of the config.
-   * {@code volatile} because there is no synchronization of processing for methods that might set the config
+   * The current value of the config. {@code volatile} because there is no synchronization of
+   * processing for methods that might set the config
    */
   protected volatile T value;
+
   private boolean read;
 
   private Configurable(
@@ -76,8 +77,8 @@ public final class Configurable<T> {
   }
 
   /**
-   * Checks that the config can be set.  A config's value may not be set after it is read.
-   * This check can be disabled for testing using {@link Configuration#disableConfigSetCheck()}
+   * Checks that the config can be set. A config's value may not be set after it is read. This check
+   * can be disabled for testing using {@link Configuration#disableConfigSetCheck()}
    *
    * @throws IllegalConfigStateException if this config has already been read
    */
@@ -101,20 +102,23 @@ public final class Configurable<T> {
    * Sets this config's value from the specified string.
    *
    * @throws ConfigException if an error occurs.
-   * <ul>
-   *   <li>{@linkplain ConfigException.IllegalConfigStateException} if the config is not writable.</li>
-   *   <li>{@linkplain ConfigException.InvalidConfigValueException} if the value could not be parsed or the parsed
-   *   value is not acceptable to the config.</li>
-   * </ul>
+   *     <ul>
+   *     <li>{@linkplain ConfigException.IllegalConfigStateException} if the config is not writable.
+   *     <li>{@linkplain ConfigException.InvalidConfigValueException} if the value could not be
+   *         parsed or the parsed value is not acceptable to the config.
+   *     </ul>
    */
   T setFromString(String valueString) throws ConfigException {
     if (valueString == null) {
       throw new InvalidConfigValueException("Cannot set from null string.");
     }
     try {
-      T result = parser.apply(Preconditions.checkNotNull(valueString, "New config string value cannot be null."));
+      T result = parser.apply(valueString);
       return setValue(result);
     } catch (RuntimeException ex) {
+      if (ex instanceof ConfigRuntimeException) {
+        throw ((ConfigRuntimeException) ex).unwrap();
+      }
       // A problem occurred when parsing
       throw new InvalidConfigValueException(valueString);
     }
@@ -125,8 +129,12 @@ public final class Configurable<T> {
     return registerListener(listener, false);
   }
 
-  /** Registers a listener to the configurable, including firing an initial event to sent the current value. */
-  public ListenerRegistration registerListener(final ConfigChangeListener<T> listener, boolean listen) {
+  /**
+   * Registers a listener to the configurable, including firing an initial event to sent the current
+   * value.
+   */
+  public ListenerRegistration registerListener(
+      final ConfigChangeListener<T> listener, boolean listen) {
     listeners.add(listener);
     if (listen) {
       listener.onConfigurationChange(value);
@@ -141,20 +149,26 @@ public final class Configurable<T> {
 
   /**
    * Sets the config to a new value.
-   * <p>
-   * If the configurable is read-only-after-read (a flag), this method will fail if the value has been read unless
-   * state checking is disabled.
+   *
+   * <p>If the configurable is read-only-after-read (a flag), this method will fail if the value has
+   * been read unless state checking is disabled.
    *
    * @param value the new value to assign to this config.
    * @return the prior value held by the config.
    * @throws ConfigException if an error occurs:
-   * <ul>
-   *   <li> {@link ConfigException.IllegalConfigStateException} if the configurable is not writable.</li>
-   *   <li> {@link ConfigException.InvalidConfigValueException} if the given value is not valid for the config.</li>
-   * </ul>
+   *     <ul>
+   *     <li> {@link ConfigException.IllegalConfigStateException} if the configurable is not
+   *         writable.
+   *     <li> {@link ConfigException.InvalidConfigValueException} if the given value is not valid
+   *         for the config.
+   *     </ul>
+   *
    * @see Configuration#disableConfigSetCheck()
    */
   public T setValue(T value) throws ConfigException {
+    if (value == null) {
+      throw new InvalidConfigValueException("Cannot set configurable to null.");
+    }
     checkSetState();
     T oldValue = this.value;
     synchronized (this) {
@@ -169,9 +183,10 @@ public final class Configurable<T> {
    *
    * @return the prior value held by the config.
    * @throws ConfigException if an error occurs:
-   * <ul>
-   *   <li> {@link ConfigException.IllegalConfigStateException} if the configurable is not writable.</li>
-   * </ul>
+   *     <ul>
+   *     <li> {@link ConfigException.IllegalConfigStateException} if the configurable is not
+   *         writable.
+   *     </ul>
    */
   public T reset() throws ConfigException {
     return setValue(defaultValue);
@@ -185,9 +200,8 @@ public final class Configurable<T> {
   }
 
   /**
-   * Returns a string representation of the value of this command line config.
-   * This will retrieve the value from the {@link #get} method and thus mark
-   * the config as having been accessed.
+   * Returns a string representation of the value of this command line config. This will retrieve
+   * the value from the {@link #get} method and thus mark the config as having been accessed.
    */
   @Override
   public String toString() {
@@ -196,22 +210,34 @@ public final class Configurable<T> {
 
   /** Creates a new Configurable with the default value. */
   public static <T> Configurable<T> value(T defaultValue) {
+    Preconditions.checkNotNull(
+        defaultValue, "Explicit null defaults are not allowed, use noDefault(Class) instead.");
     return Configurable.<T>builder().withDefaultValue(defaultValue).build();
   }
 
   /** Creates a new Configurable.Builder with the default value */
   public static <T> Configurable<T> flag(T defaultValue) {
+    Preconditions.checkNotNull(
+        defaultValue, "Explicit null defaults are not allowed, use noDefaultFlag(Class) instead.");
     return Configurable.<T>builder().withDefaultValue(defaultValue).makeReadOnlyAfterRead().build();
   }
 
   /** Creates a new Configurable with the default value. */
   public static <T, S extends T> Configurable<T> value(Class<T> clazz, S defaultValue) {
+    Preconditions.checkNotNull(
+        defaultValue, "Explicit null defaults are not allowed, use noDefault(Class) instead.");
     return Configurable.<T>builder().withClass(clazz).withDefaultValue(defaultValue).build();
   }
 
   /** Creates a new Configurable with the default value. */
   public static <T, S extends T> Configurable<T> flag(Class<T> clazz, S defaultValue) {
-    return Configurable.<T>builder().withClass(clazz).withDefaultValue(defaultValue).makeReadOnlyAfterRead().build();
+    Preconditions.checkNotNull(
+        defaultValue, "Explicit null defaults are not allowed, use noDefaultFlag(Class) instead.");
+    return Configurable.<T>builder()
+        .withClass(clazz)
+        .withDefaultValue(defaultValue)
+        .makeReadOnlyAfterRead()
+        .build();
   }
 
   /** Creates a new Configurable with no default value but of the given class. */
@@ -237,13 +263,14 @@ public final class Configurable<T> {
 
   private static Builder<List<String>> stringListConfigBuilder(String[] defaultValues) {
     return Configurable.<List<String>>builder()
-          .withDefaultValue(ImmutableList.copyOf(defaultValues))
-          .withParser(new Function<String, List<String>>() {
-            @Override
-            public ImmutableList<String> apply(String input) {
-              return ImmutableList.copyOf(Splitter.on(Pattern.compile(",\\s*")).split(input));
-            }
-          });
+        .withDefaultValue(ImmutableList.copyOf(defaultValues))
+        .withParser(
+            new Function<String, List<String>>() {
+              @Override
+              public ImmutableList<String> apply(String input) {
+                return ImmutableList.copyOf(Splitter.on(Pattern.compile(",\\s*")).split(input));
+              }
+            });
   }
 
   public static <T> Builder<T> builder() {
@@ -263,7 +290,8 @@ public final class Configurable<T> {
     }
 
     public Builder<T> withClass(Class<T> clazz) {
-      Preconditions.checkState(this.clazz == null,
+      Preconditions.checkState(
+          this.clazz == null,
           "Class already interpreted from default value %s."
               + " If the default is a subclass of the Configurable type, call withClass prior to withDefaultValue.",
           defaultValue);
@@ -273,7 +301,8 @@ public final class Configurable<T> {
 
     @SuppressWarnings("unchecked") // Will throw if wrong.
     public Builder<T> withDefaultValue(T defaultValue) {
-      Preconditions.checkState(this.defaultValue == null, "Default value already set to %s", this.defaultValue);
+      Preconditions.checkState(
+          this.defaultValue == null, "Default value already set to %s", this.defaultValue);
       this.defaultValue = Preconditions.checkNotNull(defaultValue, "Default value cannot be null");
       if (this.clazz == null) {
         // If this throws ClassCastException, it indicates that the default value s a subtype of the config type.
@@ -310,18 +339,19 @@ public final class Configurable<T> {
         predicate = Predicates.and(built);
       }
 
-
       return new Configurable<>(clazz, defaultValue, predicate, getParser(), readOnlyAfterRead);
     }
 
-    private Function<String,T> getParser() {
+    private Function<String, T> getParser() {
       if (parser != null) {
         return parser;
       }
-      Function<String, T> parserForClass = Parsers.forClass(Preconditions.checkNotNull(clazz,
-          "No parser specified and no class was determined."));
-      return Preconditions.checkNotNull(parserForClass,
-          "No parser specified and none could be determined for class %s", clazz);
+      Function<String, T> parserForClass =
+          Parsers.forClass(
+              Preconditions.checkNotNull(
+                  clazz, "No parser specified and no class was determined."));
+      return Preconditions.checkNotNull(
+          parserForClass, "No parser specified and none could be determined for class %s", clazz);
     }
   }
 }

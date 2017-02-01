@@ -27,6 +27,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import javax.annotation.Nullable;
 import javax.annotation.processing.Messager;
 import javax.tools.Diagnostic;
 
@@ -63,6 +64,11 @@ class DaggerModuleFileWriterVisitor implements ConfigPackageTree.Visitor<String>
         .add(TypeMetadata.from(Module.class))
         .add(TypeMetadata.from(Provides.class))
         .add(TypeMetadata.from(IntoSet.class));
+
+    if (configs.stream().anyMatch(config -> !config.hasDefault())) {
+      referencedTypes.add(TypeMetadata.from(Nullable.class));
+    }
+
     configs.forEach(config -> referencedTypes.addAll(config.getAllTypes()));
 
     Imports imports = Imports.create(packageName, referencedTypes.build());
@@ -155,7 +161,9 @@ class DaggerModuleFileWriterVisitor implements ConfigPackageTree.Visitor<String>
     } else {
       writeLine(writer, "  @ConfigValue(\"%s\")", config.name());
     }
-
+    if (!config.hasDefault()) {
+      writeLine(writer, "  @Nullable"); // in case the config is null.
+    }
     writeLine(writer, "  public static %s provideConfigValue_%s(Configuration configuration) {",
         config.type().toString(imports), config.name());
     writeLine(writer, "    try {");

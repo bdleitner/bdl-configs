@@ -33,12 +33,18 @@ abstract class ConfigMetadata implements Comparable<ConfigMetadata>, UsesTypes {
   private static final TypeMetadata CONFIG_TYPE = TypeMetadata.from(Config.class);
   private static final TypeMetadata CONFIGURABLE_TYPE = TypeMetadata.from(Configurable.class);
   private static final TypeMetadata QUALIFIER_TYPE = TypeMetadata.from(Qualifier.class);
-  private static final TypeMetadata BINDING_ANNOTATION_TYPE = TypeMetadata.from(BindingAnnotation.class);
+  private static final TypeMetadata BINDING_ANNOTATION_TYPE =
+      TypeMetadata.from(BindingAnnotation.class);
 
   abstract FieldMetadata field();
+
   abstract AnnotationMetadata configAnnotation();
+
   abstract Optional<AnnotationMetadata> bindingAnnotation();
+
   abstract Optional<AnnotationMetadata> qualifier();
+
+  abstract boolean hasDefault();
 
   TypeMetadata type() {
     return field().type().params().get(0);
@@ -63,26 +69,32 @@ abstract class ConfigMetadata implements Comparable<ConfigMetadata>, UsesTypes {
   }
 
   public String fieldReference(Imports imports) {
-    return String.format("%s.%s", field().containingClass().rawType().toString(imports), field().name());
+    return String.format(
+        "%s.%s", field().containingClass().rawType().toString(imports), field().name());
   }
 
-  /** Returns the name of the config.  This is equal to the field name unless a specified name is given. */
+  /**
+   * Returns the name of the config. This is equal to the field name unless a specified name is
+   * given.
+   */
   public String name() {
     ValueMetadata value = configAnnotation().value("name");
-    return value != null
-        ? value.value()
-        : field().name();
+    return value != null ? value.value() : field().name();
   }
 
   @Override
   public int compareTo(ConfigMetadata that) {
-    return String.CASE_INSENSITIVE_ORDER.compare(fullyQualifiedPathName(), that.fullyQualifiedPathName());
+    return String.CASE_INSENSITIVE_ORDER.compare(
+        fullyQualifiedPathName(), that.fullyQualifiedPathName());
   }
 
-  static ConfigMetadata from(Elements elements, FieldMetadata field) {
+  static ConfigMetadata from(Elements elements, FieldMetadata field, FieldInitializationGrabber grabber) {
     Builder config = ConfigMetadata.builder().field(field);
     boolean foundQualifier = false;
     boolean foundBindingAnnotation = false;
+
+    String initializer = grabber.findInitializer(field);
+    config.hasDefault(!initializer.contains("noDefault"));
 
     for (AnnotationMetadata annotation : field.annotations()) {
       TypeMetadata annotationType = annotation.type();
@@ -91,24 +103,28 @@ abstract class ConfigMetadata implements Comparable<ConfigMetadata>, UsesTypes {
         continue;
       }
 
-      String annotationTypeName = String.format("%s%s%s",
-          annotationType.packagePrefix(),
-          annotationType.nestingPrefix(),
-          annotationType.name());
+      String annotationTypeName =
+          String.format(
+              "%s%s%s",
+              annotationType.packagePrefix(),
+              annotationType.nestingPrefix(),
+              annotationType.name());
       System.out.printf("Annotation Type Name: %s\n", annotationTypeName);
       TypeElement annotationTypeElement = elements.getTypeElement(annotationTypeName);
       System.out.printf("Annotation Type Element: %s\n", annotationTypeElement);
       ClassMetadata annotationClazz = ClassMetadata.fromElement(annotationTypeElement);
       for (AnnotationMetadata metaAnnotation : annotationClazz.annotations()) {
         if (metaAnnotation.type().equals(QUALIFIER_TYPE)) {
-          Preconditions.checkArgument(!foundQualifier,
+          Preconditions.checkArgument(
+              !foundQualifier,
               "Field %s has more than one Qualifier annotation (not including @Config).",
               config.build().fullyQualifiedPathName());
           foundQualifier = true;
           config.qualifier(annotation);
         }
         if (metaAnnotation.type().equals(BINDING_ANNOTATION_TYPE)) {
-          Preconditions.checkArgument(!foundBindingAnnotation,
+          Preconditions.checkArgument(
+              !foundBindingAnnotation,
               "Field %s has more than one BindingAnnotation annotation (not including @Config).",
               config.build().fullyQualifiedPathName());
           foundBindingAnnotation = true;
@@ -126,16 +142,23 @@ abstract class ConfigMetadata implements Comparable<ConfigMetadata>, UsesTypes {
   @AutoValue.Builder
   abstract static class Builder {
     abstract Builder field(FieldMetadata field);
+
     abstract Builder configAnnotation(AnnotationMetadata annotation);
+
     abstract Builder bindingAnnotation(AnnotationMetadata annotation);
+
     abstract Builder qualifier(AnnotationMetadata annotation);
+
+    abstract Builder hasDefault(boolean hasDefault);
 
     abstract ConfigMetadata autoBuild();
 
     ConfigMetadata build() {
       ConfigMetadata config = autoBuild();
-      Preconditions.checkArgument(config.field().type().rawType().equals(CONFIGURABLE_TYPE.rawType()),
-          "The given field is not a Configurable type, was %s", config.field().type().toString(Imports.empty()));
+      Preconditions.checkArgument(
+          config.field().type().rawType().equals(CONFIGURABLE_TYPE.rawType()),
+          "The given field is not a Configurable type, was %s",
+          config.field().type().toString(Imports.empty()));
       return config;
     }
   }

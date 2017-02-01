@@ -56,6 +56,7 @@ public class GuiceModulesTest {
             .configAnnotation(AnnotationMetadata.builder()
                 .setType(CONFIG_TYPE)
                 .build())
+            .hasDefault(true)
             .build());
     tree.addConfig(
         DO_NOTHING_MESSAGER,
@@ -76,6 +77,7 @@ public class GuiceModulesTest {
                 .setType(TypeMetadata.from(Annotations.DummyBindingAnnotation.class))
                 .putValue("value", ValueMetadata.create("flag2"))
                 .build())
+            .hasDefault(false)
             .build());
     tree.addConfig(
         DO_NOTHING_MESSAGER,
@@ -92,6 +94,7 @@ public class GuiceModulesTest {
             .configAnnotation(AnnotationMetadata.builder()
                 .setType(CONFIG_TYPE)
                 .build())
+            .hasDefault(true)
             .build());
     tree.addConfig(
         DO_NOTHING_MESSAGER,
@@ -108,6 +111,7 @@ public class GuiceModulesTest {
             .configAnnotation(AnnotationMetadata.builder()
                 .setType(CONFIG_TYPE)
                 .build())
+            .hasDefault(true)
             .build());
     tree.addConfig(
         DO_NOTHING_MESSAGER,
@@ -127,6 +131,7 @@ public class GuiceModulesTest {
             .bindingAnnotation(AnnotationMetadata.builder()
                 .setType(TypeMetadata.from(Annotations.DummyBindingAnnotation.class))
                 .build())
+            .hasDefault(true)
             .build());
 
     tree.pullPublicAndPrivateConfigsUp();
@@ -172,6 +177,7 @@ public class GuiceModulesTest {
             .configAnnotation(AnnotationMetadata.builder()
                 .setType(CONFIG_TYPE)
                 .build())
+            .hasDefault(true)
             .build());
     tree.addConfig(
         DO_NOTHING_MESSAGER,
@@ -188,6 +194,7 @@ public class GuiceModulesTest {
             .configAnnotation(AnnotationMetadata.builder()
                 .setType(CONFIG_TYPE)
                 .build())
+            .hasDefault(true)
             .build());
 
     tree.pullPublicAndPrivateConfigsUp();

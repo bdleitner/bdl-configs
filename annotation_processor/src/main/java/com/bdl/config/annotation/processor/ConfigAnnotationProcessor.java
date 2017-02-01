@@ -5,6 +5,8 @@ import com.google.common.base.Throwables;
 import com.bdl.annotation.processing.model.FieldMetadata;
 import com.bdl.config.Config;
 
+import com.sun.source.util.Trees;
+
 import java.io.IOException;
 import java.io.Writer;
 import java.util.List;
@@ -38,21 +40,30 @@ public class ConfigAnnotationProcessor extends AbstractProcessor {
 
   private Messager messager;
   private Elements elements;
+  private Trees trees;
 
   @Override
   public synchronized void init(ProcessingEnvironment processingEnv) {
     super.init(processingEnv);
     messager = processingEnv.getMessager();
     elements = processingEnv.getElementUtils();
+    trees = Trees.instance(processingEnv);
   }
 
   @Override
   public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-    List<ConfigMetadata>  foundConfigs = roundEnv.getElementsAnnotatedWith(Config.class)
-        .stream()
-        .filter(ConfigAnnotationProcessor::isStaticField)
-        .map(element -> ConfigMetadata.from(elements, FieldMetadata.from(element)))
-        .collect(Collectors.toList());
+    List<ConfigMetadata> foundConfigs =
+        roundEnv
+            .getElementsAnnotatedWith(Config.class)
+            .stream()
+            .filter(ConfigAnnotationProcessor::isStaticField)
+            .map(
+                element ->
+                    ConfigMetadata.from(
+                        elements,
+                        FieldMetadata.from(element),
+                        new FieldInitializationGrabber(trees, elements)))
+            .collect(Collectors.toList());
 
     if (foundConfigs.isEmpty()) {
       return true;
@@ -65,21 +76,26 @@ public class ConfigAnnotationProcessor extends AbstractProcessor {
     tree.pullPublicAndPrivateConfigsUp();
 
     try {
-      messager.printMessage(Diagnostic.Kind.NOTE,
-          String.format("Found %s configs.", foundConfigs.size()));
+      messager.printMessage(
+          Diagnostic.Kind.NOTE, String.format("Found %s configs.", foundConfigs.size()));
 
-      DaggerModuleFileWriterVisitor daggerVisitor = new DaggerModuleFileWriterVisitor(
-          messager, new JavaFileObjectWriterFunction(processingEnv));
+      DaggerModuleFileWriterVisitor daggerVisitor =
+          new DaggerModuleFileWriterVisitor(
+              messager, new JavaFileObjectWriterFunction(processingEnv));
       tree.visit(daggerVisitor);
 
-      GuiceModuleFileWriterVisitor guiceVisitor = new GuiceModuleFileWriterVisitor(
-          messager, new JavaFileObjectWriterFunction(processingEnv));
+      GuiceModuleFileWriterVisitor guiceVisitor =
+          new GuiceModuleFileWriterVisitor(
+              messager, new JavaFileObjectWriterFunction(processingEnv));
       tree.visit(guiceVisitor);
 
     } catch (Exception ex) {
       messager.printMessage(
           Diagnostic.Kind.ERROR,
-          "Error in Config Processor\n" + ex.getMessage() + "\n" + Throwables.getStackTraceAsString(ex));
+          "Error in Config Processor\n"
+              + ex.getMessage()
+              + "\n"
+              + Throwables.getStackTraceAsString(ex));
     }
     return true;
   }

@@ -31,7 +31,8 @@ class FieldInitializationGrabber {
   }
 
   String findInitializer(FieldMetadata field) {
-    TypeElement typeElement = elements.getTypeElement(field.containingClass().toString());
+    TypeElement typeElement =
+        elements.getTypeElement(field.containingClass().fullyQualifiedPathName());
     for (Element element : typeElement.getEnclosedElements()) {
       if (element.getKind() == ElementKind.FIELD
           && element.getSimpleName().toString().equals(field.name())) {

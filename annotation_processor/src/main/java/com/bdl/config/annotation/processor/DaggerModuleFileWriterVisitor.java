@@ -154,7 +154,7 @@ class DaggerModuleFileWriterVisitor implements ConfigPackageTree.Visitor<String>
     }
     writeLine(writer, "        .build();");
 
-    if (config.field().visibility() == Visibility.PRIVATE) {
+    if (config.field().modifiers().visibility() == Visibility.PRIVATE) {
       // Must use a reflective supplier
       writeLine(writer, "    return ConfigSupplier.reflective(description);");
     } else {

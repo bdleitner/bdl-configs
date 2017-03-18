@@ -10,6 +10,7 @@ import com.google.common.io.Resources;
 
 import com.bdl.annotation.processing.model.AnnotationMetadata;
 import com.bdl.annotation.processing.model.FieldMetadata;
+import com.bdl.annotation.processing.model.Modifiers;
 import com.bdl.annotation.processing.model.TypeMetadata;
 import com.bdl.annotation.processing.model.ValueMetadata;
 import com.bdl.annotation.processing.model.Visibility;
@@ -55,7 +56,7 @@ public class GuiceModulesTest {
                             .build())
                     .name("flag1")
                     .type(TypeUtils.configOf(TypeMetadata.STRING))
-                    .visibility(Visibility.PACKAGE_LOCAL)
+                    .modifiers(Modifiers.visibility(Visibility.PACKAGE_LOCAL))
                     .build())
             .configAnnotation(AnnotationMetadata.builder().setType(CONFIG_TYPE).build())
             .hasDefault(true)
@@ -72,7 +73,7 @@ public class GuiceModulesTest {
                             .build())
                     .name("flag2")
                     .type(TypeUtils.configOf(TypeMetadata.STRING))
-                    .visibility(Visibility.PUBLIC)
+                    .modifiers(Modifiers.visibility(Visibility.PUBLIC))
                     .build())
             .configAnnotation(AnnotationMetadata.builder().setType(CONFIG_TYPE).build())
             .bindingAnnotation(
@@ -94,7 +95,7 @@ public class GuiceModulesTest {
                             .build())
                     .name("otherFlag1")
                     .type(TypeUtils.configOf(TypeMetadata.STRING))
-                    .visibility(Visibility.PUBLIC)
+                    .modifiers(Modifiers.visibility(Visibility.PUBLIC))
                     .build())
             .configAnnotation(AnnotationMetadata.builder().setType(CONFIG_TYPE).build())
             .hasDefault(true)
@@ -111,7 +112,7 @@ public class GuiceModulesTest {
                             .build())
                     .name("otherFlag2")
                     .type(TypeUtils.configOf(TypeMetadata.STRING))
-                    .visibility(Visibility.PRIVATE)
+                    .modifiers(Modifiers.visibility(Visibility.PRIVATE))
                     .build())
             .configAnnotation(AnnotationMetadata.builder().setType(CONFIG_TYPE).build())
             .hasDefault(true)
@@ -128,7 +129,7 @@ public class GuiceModulesTest {
                             .build())
                     .name("otherFlag3")
                     .type(TypeUtils.configOf(TypeMetadata.STRING))
-                    .visibility(Visibility.PACKAGE_LOCAL)
+                    .modifiers(Modifiers.visibility(Visibility.PACKAGE_LOCAL))
                     .build())
             .configAnnotation(AnnotationMetadata.builder().setType(CONFIG_TYPE).build())
             .bindingAnnotation(
@@ -180,7 +181,7 @@ public class GuiceModulesTest {
                             .setName("Local")
                             .build())
                     .type(TypeUtils.configOf(TypeMetadata.BOXED_INTEGER))
-                    .visibility(Visibility.PACKAGE_LOCAL)
+                    .modifiers(Modifiers.visibility(Visibility.PACKAGE_LOCAL))
                     .name("sub1")
                     .build())
             .configAnnotation(AnnotationMetadata.builder().setType(CONFIG_TYPE).build())
@@ -198,7 +199,7 @@ public class GuiceModulesTest {
                             .build())
                     .name("sub2")
                     .type(TypeUtils.configOf(TypeMetadata.STRING))
-                    .visibility(Visibility.PACKAGE_LOCAL)
+                    .modifiers(Modifiers.visibility(Visibility.PACKAGE_LOCAL))
                     .build())
             .configAnnotation(AnnotationMetadata.builder().setType(CONFIG_TYPE).build())
             .hasDefault(true)

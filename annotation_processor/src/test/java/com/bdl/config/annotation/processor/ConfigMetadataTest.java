@@ -7,6 +7,7 @@ import static org.mockito.Mockito.when;
 import com.google.testing.compile.CompilationRule;
 
 import com.bdl.annotation.processing.model.FieldMetadata;
+import com.bdl.annotation.processing.model.Modifiers;
 import com.bdl.annotation.processing.model.TypeMetadata;
 import com.bdl.annotation.processing.model.Visibility;
 
@@ -83,9 +84,7 @@ public class ConfigMetadataTest {
                 .field(
                     FieldMetadata.builder()
                         .containingClass(CONFIG_CONTAINER_TYPE)
-                        .visibility(Visibility.PRIVATE)
-                        .isStatic(true)
-                        .isFinal(true)
+                        .modifiers(Modifiers.visibility(Visibility.PRIVATE).makeStatic().makeFinal())
                         .type(TypeUtils.configOf(TypeMetadata.STRING))
                         .name("privateString")
                         .addAnnotation(Annotations.configMetadata())
@@ -107,9 +106,7 @@ public class ConfigMetadataTest {
                 .field(
                     FieldMetadata.builder()
                         .containingClass(CONFIG_CONTAINER_TYPE)
-                        .visibility(Visibility.PACKAGE_LOCAL)
-                        .isStatic(true)
-                        .isFinal(true)
+                        .modifiers(Modifiers.visibility(Visibility.PACKAGE_LOCAL).makeStatic().makeFinal())
                         .type(TypeUtils.configOf(TypeMetadata.BOXED_INTEGER))
                         .name("packageInteger")
                         .addAnnotation(Annotations.configMetadata("specified_name"))
@@ -133,9 +130,7 @@ public class ConfigMetadataTest {
                 .field(
                     FieldMetadata.builder()
                         .containingClass(CONFIG_CONTAINER_TYPE)
-                        .visibility(Visibility.PUBLIC)
-                        .isStatic(true)
-                        .isFinal(true)
+                        .modifiers(Modifiers.visibility(Visibility.PUBLIC).makeStatic().makeFinal())
                         .type(TypeUtils.configOf(TypeMetadata.BOXED_BOOLEAN))
                         .name("publicBoolean")
                         .addAnnotation(Annotations.configMetadata())
@@ -161,9 +156,7 @@ public class ConfigMetadataTest {
                 .field(
                     FieldMetadata.builder()
                         .containingClass(CONFIG_CONTAINER_TYPE)
-                        .visibility(Visibility.PRIVATE)
-                        .isStatic(true)
-                        .isFinal(true)
+                        .modifiers(Modifiers.visibility(Visibility.PRIVATE).makeStatic().makeFinal())
                         .type(TypeUtils.configOf(TypeMetadata.STRING))
                         .name("noDefaultString")
                         .addAnnotation(Annotations.configMetadata())

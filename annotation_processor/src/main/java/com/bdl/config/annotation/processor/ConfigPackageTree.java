@@ -81,7 +81,7 @@ class ConfigPackageTree {
             Diagnostic.Kind.NOTE,
             String.format(
                 "Adding %s config %s to package %s.",
-                config.field().visibility(), config.fullyQualifiedPathName(), this.packageName));
+                config.field().modifiers().visibility(), config.fullyQualifiedPathName(), this.packageName));
         configs.add(config);
         return;
       }
@@ -111,8 +111,8 @@ class ConfigPackageTree {
       }
       for (Iterator<ConfigMetadata> it = configs.iterator(); it.hasNext(); ) {
         ConfigMetadata config = it.next();
-        if (config.field().visibility() == Visibility.PUBLIC
-            || config.field().visibility() == Visibility.PRIVATE) {
+        if (config.field().modifiers().visibility() == Visibility.PUBLIC
+            || config.field().modifiers().visibility() == Visibility.PRIVATE) {
           node.configs.add(config);
           it.remove();
         }

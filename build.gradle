@@ -33,8 +33,8 @@ subprojects {
     targetCompatibility = 1.8
 
     ext {
-        JUNIT_VERSION = '4.2'
-        GOOGLE_TRUTH_VERSION = '0.28'
+        JUNIT_VERSION = '4.12'
+        GOOGLE_TRUTH_VERSION = '0.31'
     }
 
     dependencies {

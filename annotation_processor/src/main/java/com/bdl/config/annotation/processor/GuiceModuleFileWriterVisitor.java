@@ -163,7 +163,7 @@ class GuiceModuleFileWriterVisitor implements ConfigPackageTree.Visitor<String> 
     writeLine(writer, "        .build();");
     writeLine(writer, "    binder.addBinding().toInstance(");
 
-    if (config.field().visibility() == Visibility.PRIVATE) {
+    if (config.field().modifiers().visibility() == Visibility.PRIVATE) {
       // Must use a reflective supplier
       writeLine(writer, "        ConfigSupplier.reflective(description));");
     } else {

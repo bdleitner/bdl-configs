@@ -1,7 +1,12 @@
 package com.bdl.config.annotation.processor;
 
+import com.google.common.base.Function;
+import com.google.common.base.Joiner;
+import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Ordering;
 
 import com.bdl.annotation.processing.model.AnnotationMetadata;
 import com.bdl.annotation.processing.model.Imports;
@@ -22,10 +27,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import javax.annotation.Nullable;
 import javax.annotation.processing.Messager;
@@ -53,8 +55,8 @@ class DaggerModuleFileWriterVisitor implements ConfigPackageTree.Visitor<String>
       return childOutputs;
     }
 
-    List<String> orderedChildPackages = childOutputs.stream().sorted().collect(Collectors.toList());
-    List<ConfigMetadata> orderedConfigs = configs.stream().sorted().collect(Collectors.toList());
+    List<String> orderedChildPackages = FluentIterable.from(childOutputs).toSortedList(Ordering.<String>natural());
+    List<ConfigMetadata> orderedConfigs = FluentIterable.from(configs).toSortedList(Ordering.<ConfigMetadata>natural());
 
     ImmutableSet.Builder<TypeMetadata> referencedTypes =
         ImmutableSet.<TypeMetadata>builder()
@@ -67,11 +69,15 @@ class DaggerModuleFileWriterVisitor implements ConfigPackageTree.Visitor<String>
             .add(TypeMetadata.from(Provides.class))
             .add(TypeMetadata.from(IntoSet.class));
 
-    if (configs.stream().anyMatch(config -> !config.hasDefault())) {
-      referencedTypes.add(TypeMetadata.from(Nullable.class));
+    for (ConfigMetadata config : configs) {
+      if (!config.hasDefault()) {
+        referencedTypes.add(TypeMetadata.from(Nullable.class));
+        break;
+      }
     }
-
-    configs.forEach(config -> referencedTypes.addAll(config.getAllTypes()));
+    for (ConfigMetadata config : configs) {
+      referencedTypes.addAll(config.getAllTypes());
+    }
 
     Imports imports = Imports.create(packageName, referencedTypes.build());
 
@@ -114,11 +120,14 @@ class DaggerModuleFileWriterVisitor implements ConfigPackageTree.Visitor<String>
       writeLine(
           writer,
           "@Module(includes = {%s})",
-          childPackages
-              .stream()
-              .map((input) -> String.format("%s.ConfigDaggerModule.class", input))
-              .sorted()
-              .collect(Collectors.joining(", ")));
+          Joiner.on(", ").join(FluentIterable.from(childPackages)
+          .transform(new Function<String, String>() {
+            @Nullable
+            @Override
+            public String apply(@Nullable String input) {
+              return String.format("%s.ConfigDaggerModule.class", input);
+            }
+          }).toSortedList(Ordering.<String>natural())));
     }
     writeLine(writer, "public class ConfigDaggerModule {");
   }

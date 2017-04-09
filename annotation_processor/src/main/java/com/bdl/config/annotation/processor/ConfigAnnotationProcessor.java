@@ -1,6 +1,9 @@
 package com.bdl.config.annotation.processor;
 
+import com.google.common.base.Function;
+import com.google.common.base.Predicate;
 import com.google.common.base.Throwables;
+import com.google.common.collect.FluentIterable;
 
 import com.bdl.annotation.processing.model.FieldMetadata;
 import com.bdl.config.Config;
@@ -11,9 +14,8 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
+import javax.annotation.Nullable;
 import javax.annotation.processing.AbstractProcessor;
 import javax.annotation.processing.Messager;
 import javax.annotation.processing.ProcessingEnvironment;
@@ -35,7 +37,7 @@ import javax.tools.JavaFileObject;
  * @author Ben Leitner
  */
 @SupportedAnnotationTypes("com.bdl.config.Config")
-@SupportedSourceVersion(SourceVersion.RELEASE_8)
+@SupportedSourceVersion(SourceVersion.RELEASE_7)
 public class ConfigAnnotationProcessor extends AbstractProcessor {
 
   private Messager messager;
@@ -52,18 +54,22 @@ public class ConfigAnnotationProcessor extends AbstractProcessor {
 
   @Override
   public boolean process(Set<? extends TypeElement> annotations, RoundEnvironment roundEnv) {
-    List<ConfigMetadata> foundConfigs =
-        roundEnv
-            .getElementsAnnotatedWith(Config.class)
-            .stream()
-            .filter(ConfigAnnotationProcessor::isStaticField)
-            .map(
-                element ->
-                    ConfigMetadata.from(
-                        elements,
-                        FieldMetadata.from(element),
-                        new FieldInitializationGrabber(trees, elements)))
-            .collect(Collectors.toList());
+    List<ConfigMetadata> foundConfigs = FluentIterable.from(roundEnv.getElementsAnnotatedWith(Config.class))
+    .filter(new Predicate<Element>() {
+      @Override
+      public boolean apply(@Nullable Element input) {
+        return isStaticField(input);
+      }
+    }).transform(new Function<Element, ConfigMetadata>() {
+          @Nullable
+          @Override
+          public ConfigMetadata apply(@Nullable Element input) {
+            return ConfigMetadata.from(
+                elements,
+                FieldMetadata.from(input),
+                new FieldInitializationGrabber(trees, elements));
+          }
+        }).toList();
 
     if (foundConfigs.isEmpty()) {
       return true;

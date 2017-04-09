@@ -5,6 +5,7 @@ import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.io.Resources;
@@ -27,6 +28,7 @@ import java.io.Writer;
 import java.net.URL;
 import java.util.Map;
 
+import javax.annotation.Nullable;
 import javax.annotation.processing.Messager;
 
 /**
@@ -151,10 +153,13 @@ public class DaggerModulesTest {
     DaggerModuleFileWriterVisitor daggerVisitor =
         new DaggerModuleFileWriterVisitor(
             DO_NOTHING_MESSAGER,
-            input -> {
-              StringWriter writer = new StringWriter();
-              writerMap.put(input + ".txt", writer);
-              return writer;
+            new Function<String, Writer>() {
+              @Override
+              public Writer apply(@Nullable String input) {
+                StringWriter writer = new StringWriter();
+                writerMap.put(input + ".txt", writer);
+                return writer;
+              }
             });
 
     tree.visit(daggerVisitor);
@@ -220,10 +225,13 @@ public class DaggerModulesTest {
     DaggerModuleFileWriterVisitor daggerVisitor =
         new DaggerModuleFileWriterVisitor(
             DO_NOTHING_MESSAGER,
-            input -> {
-              StringWriter writer = new StringWriter();
-              writerMap.put(input + ".txt", writer);
-              return writer;
+            new Function<String, Writer>() {
+              @Override
+              public Writer apply(@Nullable String input) {
+                StringWriter writer = new StringWriter();
+                writerMap.put(input + ".txt", writer);
+                return writer;
+              }
             });
 
     tree.visit(daggerVisitor);

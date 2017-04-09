@@ -40,7 +40,7 @@ public class MainConfigGuiceModule extends AbstractModule {
 
   /** Creates a new {@link MainConfigGuiceModule}. */
   public static MainConfigGuiceModule create() {
-    return forArguments(ImmutableList.of());
+    return forArguments(ImmutableList.<String>of());
   }
 
   /** Creates a new {@link MainConfigGuiceModule} using the given strings as inputs. */

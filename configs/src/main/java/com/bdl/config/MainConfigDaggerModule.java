@@ -37,7 +37,7 @@ public class MainConfigDaggerModule {
 
   /** Creates a new {@link MainConfigDaggerModule}. */
   public static MainConfigDaggerModule create() {
-    return forArguments(ImmutableList.of());
+    return forArguments(ImmutableList.<String>of());
   }
 
   /** Creates a new {@link MainConfigDaggerModule} using the given strings as inputs. */

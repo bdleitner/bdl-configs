@@ -29,22 +29,22 @@ subprojects {
     apply plugin: 'idea'
     apply plugin: 'net.ltgt.apt'
 
-    sourceCompatibility = 1.8
-    targetCompatibility = 1.8
+    sourceCompatibility = 1.7
+    targetCompatibility = 1.7
 
     ext {
         JUNIT_VERSION = '4.12'
-        GOOGLE_TRUTH_VERSION = '0.31'
+        GOOGLE_TRUTH_VERSION = '0.32'
     }
 
     dependencies {
-        compile 'com.google.dagger:dagger:2.6.1'
+        compile 'com.google.dagger:dagger:2.10'
 
         testCompile "com.google.truth:truth:${GOOGLE_TRUTH_VERSION}"
         testCompile "junit:junit:${JUNIT_VERSION}"
 
-        apt 'com.google.dagger:dagger-compiler:2.6.1'
-        testApt 'com.google.dagger:dagger-compiler:2.6.1'
+        apt 'com.google.dagger:dagger-compiler:2.10'
+        testApt 'com.google.dagger:dagger-compiler:2.10'
     }
 
     javadoc {

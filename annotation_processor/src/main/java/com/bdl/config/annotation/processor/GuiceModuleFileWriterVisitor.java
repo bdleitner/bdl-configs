@@ -1,7 +1,11 @@
 package com.bdl.config.annotation.processor;
 
+import com.google.common.base.Function;
+import com.google.common.base.Optional;
 import com.google.common.base.Throwables;
+import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Ordering;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.multibindings.Multibinder;
@@ -21,10 +25,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import javax.annotation.processing.Messager;
 import javax.tools.Diagnostic;
@@ -51,8 +52,10 @@ class GuiceModuleFileWriterVisitor implements ConfigPackageTree.Visitor<String> 
       return childOutputs;
     }
 
-    List<String> orderedChildPackages = childOutputs.stream().sorted().collect(Collectors.toList());
-    List<ConfigMetadata> orderedConfigs = configs.stream().sorted().collect(Collectors.toList());
+    List<String> orderedChildPackages =
+        FluentIterable.from(childOutputs).toSortedList(Ordering.natural());
+    List<ConfigMetadata> orderedConfigs =
+        FluentIterable.from(configs).toSortedList(Ordering.<ConfigMetadata>natural());
 
     ImmutableSet.Builder<TypeMetadata> referencedTypes =
         ImmutableSet.<TypeMetadata>builder()
@@ -64,7 +67,9 @@ class GuiceModuleFileWriterVisitor implements ConfigPackageTree.Visitor<String> 
             .add(TypeMetadata.from(AbstractModule.class))
             .add(TypeMetadata.from(Provides.class))
             .add(TypeMetadata.from(Multibinder.class));
-    configs.forEach(config -> referencedTypes.addAll(config.getAllTypes()));
+    for (ConfigMetadata config : configs) {
+      referencedTypes.addAll(config.getAllTypes());
+    }
 
     Imports imports = Imports.create(packageName, referencedTypes.build());
 

@@ -98,8 +98,8 @@ public class ConfigurationTest {
     Configurable<String> foo = Configurable.value("foo");
     ConfigMap map =
         new ConfigMap(
-            ImmutableMap.of("foo", foo),
-            ImmutableMultimap.of());
+            ImmutableMap.<String, Configurable<?>>of("foo", foo),
+            ImmutableMultimap.<String, String>of());
 
     Configuration configuration = new Configuration(map);
 

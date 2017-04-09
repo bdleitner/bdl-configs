@@ -4,6 +4,7 @@ import static com.bdl.annotation.processing.model.TypeMetadata.simpleTypeParam;
 import static com.google.common.truth.Truth.assertThat;
 
 import com.google.common.base.Charsets;
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.io.Resources;
@@ -26,6 +27,7 @@ import java.io.Writer;
 import java.net.URL;
 import java.util.Map;
 
+import javax.annotation.Nullable;
 import javax.annotation.processing.Messager;
 
 /**
@@ -146,10 +148,13 @@ public class GuiceModulesTest {
     GuiceModuleFileWriterVisitor guiceVisitor =
         new GuiceModuleFileWriterVisitor(
             DO_NOTHING_MESSAGER,
-            input -> {
-              StringWriter writer = new StringWriter();
-              writerMap.put(input, writer);
-              return writer;
+            new Function<String, Writer>() {
+              @Override
+              public Writer apply(@Nullable String input) {
+                StringWriter writer = new StringWriter();
+                writerMap.put(input, writer);
+                return writer;
+              }
             });
 
     tree.visit(guiceVisitor);
@@ -212,10 +217,13 @@ public class GuiceModulesTest {
     GuiceModuleFileWriterVisitor daggerVisitor =
         new GuiceModuleFileWriterVisitor(
             DO_NOTHING_MESSAGER,
-            input -> {
-              StringWriter writer = new StringWriter();
-              writerMap.put(input + ".txt", writer);
-              return writer;
+            new Function<String, Writer>() {
+              @Override
+              public Writer apply(@Nullable String input) {
+                StringWriter writer = new StringWriter();
+                writerMap.put(input + ".txt", writer);
+                return writer;
+              }
             });
 
     tree.visit(daggerVisitor);

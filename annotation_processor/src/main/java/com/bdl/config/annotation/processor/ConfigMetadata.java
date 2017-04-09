@@ -1,6 +1,7 @@
 package com.bdl.config.annotation.processor;
 
 import com.google.auto.value.AutoValue;
+import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 import com.google.inject.BindingAnnotation;
@@ -15,7 +16,6 @@ import com.bdl.annotation.processing.model.ValueMetadata;
 import com.bdl.config.Config;
 import com.bdl.config.Configurable;
 
-import java.util.Optional;
 import java.util.Set;
 
 import javax.inject.Qualifier;

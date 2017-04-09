@@ -105,7 +105,9 @@ class ConfigPackageTree {
           canRemoveMe = false;
         }
       }
-      childrenToRemove.forEach(children::remove);
+      for (String childToRemove : childrenToRemove) {
+        children.remove(childToRemove);
+      }
       if (this == node) {
         return false;
       }

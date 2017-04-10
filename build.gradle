@@ -38,13 +38,8 @@ subprojects {
     }
 
     dependencies {
-        compile 'com.google.dagger:dagger:2.10'
-
         testCompile "com.google.truth:truth:${GOOGLE_TRUTH_VERSION}"
         testCompile "junit:junit:${JUNIT_VERSION}"
-
-        apt 'com.google.dagger:dagger-compiler:2.10'
-        testApt 'com.google.dagger:dagger-compiler:2.10'
     }
 
     javadoc {

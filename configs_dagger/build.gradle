@@ -1,12 +1,16 @@
 dependencies {
     compileOnly 'com.google.auto.value:auto-value:1.4'
-
+    compile 'com.google.dagger:dagger:2.10'
     compile 'com.google.code.findbugs:jsr305:latest.release'
     compile 'com.google.guava:guava:20.0'
 
     compile 'javax.inject:javax.inject:1'
 
+    compile project(':configs_common')
+
     apt 'com.google.auto.value:auto-value:1.4'
+    apt 'com.google.dagger:dagger-compiler:2.10'
+
     testApt project(':annotation_processor_dagger')
-    testApt project(':annotation_processor_guice')
+    testApt 'com.google.dagger:dagger-compiler:2.10'
 }

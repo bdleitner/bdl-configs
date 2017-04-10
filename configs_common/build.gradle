@@ -7,6 +7,13 @@ dependencies {
     compile 'javax.inject:javax.inject:1'
 
     apt 'com.google.auto.value:auto-value:1.4'
+
+    testCompile 'com.google.dagger:dagger:2.10'
+    testCompile 'com.google.inject:guice:4.1.0'
+    testCompile 'com.google.inject.extensions:guice-multibindings:4.1.0'
+    testCompile project(':annotation_processor_dagger')
+    testCompile project(':annotation_processor_guice')
+
     testApt project(':annotation_processor_dagger')
     testApt project(':annotation_processor_guice')
 }

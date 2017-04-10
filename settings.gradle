@@ -1,4 +1,8 @@
 rootProject.name = 'bdl-configs'
 
-include 'configs'
-include 'annotation_processor'
+include 'configs_common'
+include 'configs_dagger'
+include 'configs_guice'
+include 'annotation_processor_common'
+include 'annotation_processor_dagger'
+include 'annotation_processor_guice'

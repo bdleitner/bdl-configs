@@ -35,6 +35,7 @@ import javax.annotation.processing.Messager;
  * Tests for the combined functionality of {@link ConfigPackageTree} and {@link
  * DaggerModuleFileWriterVisitor}.
  *
+ * TODO: Add a test for if a module is named "Module."  Appears to block the dagger.Module import.
  * @author Ben Leitner
  */
 @RunWith(JUnit4.class)

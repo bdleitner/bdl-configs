@@ -32,7 +32,7 @@ public final class Configurable<T> {
   private final Predicate<? super T> predicate;
   private final Function<String, T> parser;
   private final boolean readOnlyAfterRead;
-  private final Set<ConfigChangeListener<T>> listeners;
+  private final Set<ConfigChangeListener<? super T>> listeners;
 
   /**
    * The current value of the config. {@code volatile} because there is no synchronization of
@@ -125,7 +125,7 @@ public final class Configurable<T> {
   }
 
   /** Registers a listener to the configurable. */
-  public ListenerRegistration registerListener(final ConfigChangeListener<T> listener) {
+  public ListenerRegistration registerListener(final ConfigChangeListener<? super T> listener) {
     return registerListener(listener, false);
   }
 
@@ -134,7 +134,7 @@ public final class Configurable<T> {
    * value.
    */
   public ListenerRegistration registerListener(
-      final ConfigChangeListener<T> listener, boolean listen) {
+      final ConfigChangeListener<? super T> listener, boolean listen) {
     listeners.add(listener);
     if (listen) {
       listener.onConfigurationChange(value);
@@ -194,7 +194,7 @@ public final class Configurable<T> {
 
   private void fireOnChange() {
     T newValue = get();
-    for (ConfigChangeListener<T> listener : listeners) {
+    for (ConfigChangeListener<? super T> listener : listeners) {
       listener.onConfigurationChange(newValue);
     }
   }

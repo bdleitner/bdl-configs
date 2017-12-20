@@ -4,12 +4,6 @@ import static com.bdl.annotation.processing.model.TypeMetadata.simpleTypeParam;
 import static com.google.common.truth.Truth.assertThat;
 import static com.google.common.truth.Truth.assertWithMessage;
 
-import com.google.common.base.Charsets;
-import com.google.common.base.Function;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Maps;
-import com.google.common.io.Resources;
-
 import com.bdl.annotation.processing.model.AnnotationMetadata;
 import com.bdl.annotation.processing.model.FieldMetadata;
 import com.bdl.annotation.processing.model.Modifiers;
@@ -17,19 +11,21 @@ import com.bdl.annotation.processing.model.TypeMetadata;
 import com.bdl.annotation.processing.model.ValueMetadata;
 import com.bdl.annotation.processing.model.Visibility;
 import com.bdl.config.Config;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
-
+import com.google.common.base.Charsets;
+import com.google.common.base.Function;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Maps;
+import com.google.common.io.Resources;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URL;
 import java.util.Map;
-
 import javax.annotation.Nullable;
 import javax.annotation.processing.Messager;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
 
 /**
  * Tests for the combined functionality of {@link ConfigPackageTree} and {@link
@@ -172,8 +168,8 @@ public class DaggerModulesTest {
               entry.getKey());
       String file = Resources.toString(resource, Charsets.UTF_8);
       assertWithMessage(String.format("file: %s", entry.getKey()))
-          .that(entry.getValue().toString())
-          .isEqualTo(file);
+          .that(normalize(entry.getValue().toString()))
+          .isEqualTo(normalize(file));
     }
   }
 
@@ -251,8 +247,8 @@ public class DaggerModulesTest {
       String file = Resources.toString(resource, Charsets.UTF_8);
 
       assertWithMessage(String.format("file: %s", entry.getKey()))
-          .that(entry.getValue().toString())
-          .isEqualTo(file);
+          .that(normalize(entry.getValue().toString()))
+          .isEqualTo(normalize(file));
     }
   }
 
@@ -262,5 +258,9 @@ public class DaggerModulesTest {
         .setName("Configurable")
         .addParam(type)
         .build();
+  }
+
+  private static String normalize(String input) {
+    return input.replace("\r\n", "\n");
   }
 }

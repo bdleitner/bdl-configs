@@ -1,7 +1,6 @@
 package com.bdl.config;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
@@ -186,7 +185,8 @@ public class Configuration {
   public void writeTo(ConfigStringWriter writer) {
     for (String key : configs.allKeys()) {
       try {
-        writer.write(key, get(key).toString());
+        Object value = get(key);
+        writer.write(key, value == null ? "<null>" : value.toString());
       } catch (ConfigException ex) {
         // Should never happen, since the key comes from the ConfigMap.
         throw ex.wrap();
